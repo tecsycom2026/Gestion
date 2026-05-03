@@ -1,221 +1,278 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TECSYCOM — Gestión PERUFIBRA</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='14' fill='%23f1f5f9'/><text y='.9em' font-size='72' x='10'>📋</text></svg>"/>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<style>
-:root {
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --surface2: #f1f5f9;
-  --border: #e2e8f0;
-  --border2: #cbd5e1;
-  --accent: #00aaff;
-  --accent2: #0088cc;
-  --accent3: #00ccff;
-  --danger: #ef4444;
-  --warn: #f59e0b;
-  --ok: #22c55e;
-  --text: #0f172a;
-  --text2: #475569;
-  --text3: #64748b;
-  --glow: 0 0 20px rgba(0,170,255,0.15);
-  --radius: 12px;
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TECSYCOM — Gestión PERUFIBRA</title>
+  <!-- Librería para leer Excel sin dependencias locales -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root { --bg: #f8fafc; --card: #ffffff; --border: #e2e8f0; --primary: #3b82f6; --text: #0f172a; --muted: #64748b; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 20px; }
+    
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    .header h1 { font-size: 1.5rem; }
+    .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; background: var(--primary); color: white; transition: 0.2s; }
+    .btn:hover { opacity: 0.9; }
+    .btn.secondary { background: var(--muted); }
+    .btn.success { background: #10b981; }
+    
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat { background: var(--card); padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; }
+    .stat .val { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+    .stat .label { font-size: 0.85rem; color: var(--muted); }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(ellipse 80% 40% at 20% -10%, rgba(0,170,255,0.06) 0%, transparent 60%),
-              radial-gradient(ellipse 60% 40% at 80% 100%, rgba(0,204,255,0.05) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Grid sutil */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: linear-gradient(rgba(0,170,255,0.03) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(0,170,255,0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Topbar */
-#topbar {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 16px;
-  padding: 0 24px; height: 60px;
-}
-
-.logo-icon {
-  width: 36px; height: 36px;
-  background: linear-gradient(135deg, var(--accent), var(--accent3));
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-  box-shadow: var(--glow);
-}
-
-.logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: var(--accent); letter-spacing: 2px; }
-
-/* Resto de estilos adaptados a claro */
-.stat-card, .menu-card, .modal-box {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.stat-card:hover, .menu-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-3px);
-  box-shadow: var(--glow);
-}
-
-#data-table thead tr { background: #f8fafc; }
-#data-table tbody tr:hover { background: #f0f9ff; }
-#data-table td { color: var(--text2); }
-
-.badge-ATENDIDO { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-.badge-AUSENTE   { background: #fef3c7; color: #854d0e; border: 1px solid #fcd34d; }
-.badge-PENDIENTE { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
-.badge-CANCELADO { background: #fee2e2; color: #b91c1c; border: 1px solid #fda4af; }
-
-/* Toolbar y búsqueda */
-.search-wrap input, .filter-select {
-  background: white;
-  border: 1px solid var(--border);
-}
-
-.search-wrap input:focus, .filter-select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(0,170,255,0.1);
-}
-
-/* Upload area */
-#upload-drop {
-  border: 2px dashed var(--border2);
-  background: white;
-}
-
-#upload-drop:hover, #upload-drop.drag-over {
-  border-color: var(--accent);
-  background: #f0f9ff;
-}
-
-/* Otros ajustes menores */
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: white;
-}
-
-.btn-ghost {
-  border: 1px solid var(--border);
-  color: var(--text2);
-}
-
-.toast-item { border-left: 4px solid var(--accent); }
-</style>
+    .upload-zone { border: 2px dashed var(--border); border-radius: 10px; padding: 40px 20px; text-align: center; background: var(--card); cursor: pointer; transition: 0.2s; margin-bottom: 15px; }
+    .upload-zone:hover, .upload-zone.drag { border-color: var(--primary); background: #eff6ff; }
+    .upload-zone input { display: none; }
+    
+    .preview-container { background: var(--card); padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { border: 1px solid var(--border); padding: 8px; text-align: left; white-space: nowrap; }
+    th { background: #f1f5f9; font-weight: 600; }
+    
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .config-panel { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .config-panel input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; }
+    
+    .hidden { display: none !important; }
+    .status-msg { margin-top: 10px; padding: 8px; border-radius: 6px; font-size: 0.9rem; text-align: center; }
+    .status-msg.success { background: #dcfce7; color: #166534; }
+    .status-msg.error { background: #fee2e2; color: #991b1b; }
+  </style>
 </head>
 <body>
 
-<!-- El resto del HTML es exactamente el mismo que proporcionaste, solo cambié los estilos y arreglé el upload -->
-
-<div id="topbar">
-  <div class="logo-mark">
-    <div class="logo-icon">📋</div>
+  <div class="header">
     <div>
-      <div class="logo-text">TECSYCOM</div>
-      <div class="logo-sub">GESTIÓN</div>
+      <h1>TECSYCOM — Gestión PERUFIBRA</h1>
+      <small style="color:var(--muted)">Sistema de Control de Instalaciones y Técnicos</small>
+    </div>
+    <button class="btn secondary" onclick="toggleConfig()">⚙️ Configurar Supabase</button>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="stats" id="statsPanel">
+    <div class="stat"><div class="val" id="statTotal">0</div><div class="label">Total Registros</div></div>
+    <div class="stat"><div class="val" id="statAtendidos">0</div><div class="label">Atendidos</div></div>
+    <div class="stat"><div class="val" id="statAusentes">0</div><div class="label">Ausentes</div></div>
+    <div class="stat"><div class="val" id="statPendientes">0</div><div class="label">Pendientes</div></div>
+    <div class="stat"><div class="val" id="statTecnicos">0</div><div class="label">Técnicos</div></div>
+  </div>
+
+  <!-- Configuración Supabase -->
+  <div id="configSection" class="config-panel hidden">
+    <h3>⚙️ Configuración Supabase</h3>
+    <input type="text" id="sbUrl" placeholder="URL del Proyecto Supabase (https://xxxx.supabase.co)">
+    <input type="text" id="sbKey" placeholder="API Key (anon / public)">
+    <input type="text" id="sbTable" placeholder="Nombre de la tabla" value="BASE_PERUFIBRA">
+    <div class="actions">
+      <button class="btn" onclick="saveConfig()">💾 Guardar y conectar</button>
+      <button class="btn secondary" onclick="toggleConfig()">Cancelar</button>
+    </div>
+    <div id="configStatus"></div>
+  </div>
+
+  <!-- Zona de Carga -->
+  <div class="upload-zone" id="dropZone">
+    <p style="font-size:1.2rem; margin-bottom:8px;">📂 Buscar archivo Excel...</p>
+    <small>Solo se procesará la hoja <strong>BASE_PERUFIBRA</strong></small><br><br>
+    <small style="color:var(--muted)">o arrastra el archivo .xlsx / .xls aquí</small>
+    <input type="file" id="fileInput" accept=".xlsx, .xls">
+  </div>
+
+  <!-- Vista Previa -->
+  <div id="previewSection" class="preview-container hidden">
+    <h4 style="margin-bottom:10px;">👁️ Vista previa (<span id="rowCount">0</span> filas detectadas)</h4>
+    <div style="max-height: 200px; overflow-y: auto;">
+      <table id="previewTable"><thead></thead><tbody></tbody></table>
     </div>
   </div>
-  <div class="topbar-nav">
-    <button class="nav-btn active" onclick="switchView('menu')">🏠 Inicio</button>
-    <button class="nav-btn" onclick="switchView('gestion')">📊 Base PERUFIBRA</button>
-    <button class="nav-btn" onclick="switchView('upload')">⬆️ Cargar Excel</button>
+
+  <!-- Acciones -->
+  <div id="actionButtons" class="actions hidden">
+    <button class="btn success" onclick="importToSupabase()">✅ Importar a Supabase</button>
+    <button class="btn secondary" onclick="loadLocally()">💾 Cargar localmente</button>
   </div>
-  <div class="topbar-right">
-    <div id="status-dot" class="status-dot offline"></div>
-    <span id="status-text">Sin conexión</span>
-    <span id="record-count">0 registros</span>
-    <button class="btn btn-ghost btn-sm" onclick="openConfigModal()">⚙️ Config</button>
-  </div>
-</div>
+  <div id="mainStatus"></div>
 
-<div id="main">
-  <!-- Aquí va todo tu HTML original de las vistas (menu, gestion, upload) -->
-  <!-- Lo mantengo igual que tu archivo original -->
-  <!-- (Por brevedad no lo copio todo aquí, pero está completo en el archivo final) -->
-</div>
+  <script>
+    // Estado global
+    let parsedData = [];
+    let appConfig = JSON.parse(localStorage.getItem('tecsycom_cfg') || '{}');
 
-<!-- Modal, Loading, Toast, etc. igual que antes -->
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', () => {
+      loadConfigToInputs();
+      setupDragDrop();
+      loadLocalDataIfExists();
+    });
 
-<script>
-// === TU CÓDIGO JAVASCRIPT ORIGINAL (sin cambios en lógica) ===
-// Solo agregué mejoras menores en el upload para que funcione mejor
+    // --- LÓGICA DE CARGA EXCEL ---
+    function setupDragDrop() {
+      const zone = document.getElementById('dropZone');
+      const input = document.getElementById('fileInput');
 
-// ... (todo tu script anterior va aquí) ...
+      zone.addEventListener('click', () => input.click());
+      input.addEventListener('change', (e) => handleFile(e.target.files[0]));
 
-// Mejora en el manejo del upload
-function processFile(file) {
-  if (!file.name.match(/\.(xlsx|xls)$/i)) {
-    toast('❌ Archivo no válido. Usa .xlsx o .xls', 'err');
-    return;
-  }
-  showLoading('Procesando archivo Excel...');
-  
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-      const sheetName = wb.SheetNames.find(name => name.toUpperCase().includes('BASE_PERUFIBRA')) || wb.SheetNames[0];
-      
-      const ws = wb.Sheets[sheetName];
-      const raw = XLSX.utils.sheet_to_json(ws, { defval: '' });
-
-      pendingImport = raw.map(row => {
-        const mapped = {};
-        COLUMNS.forEach(c => {
-          let val = row[c.key] ?? row[c.label] ?? '';
-          mapped[c.key] = String(val ?? '').trim();
-        });
-        return mapped;
-      }).filter(r => r.Codigo || r.Cliente);
-
-      hideLoading();
-      showPreview(pendingImport, file.name);
-    } catch(err) {
-      hideLoading();
-      toast('❌ Error al leer el archivo: ' + err.message, 'err');
+      zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('drag');
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+      });
     }
-  };
-  reader.readAsArrayBuffer(file);
-}
 
-// Asegurar que el drop y click funcionen
-document.getElementById('upload-drop').addEventListener('click', () => {
-  document.getElementById('file-input').click();
-});
-</script>
+    function handleFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const workbook = XLSX.read(e.target.result, { type: 'binary' });
+          // Buscar hoja exacta (case-insensitive)
+          const sheetName = workbook.SheetNames.find(s => s.trim().toUpperCase() === 'BASE_PERUFIBRA');
+          if (!sheetName) {
+            showStatus('⚠️ No se encontró la hoja "BASE_PERUFIBRA" en el archivo.', 'error');
+            return;
+          }
+
+          parsedData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+          if (parsedData.length === 0) {
+            showStatus('⚠️ La hoja está vacía o no tiene encabezados válidos.', 'error');
+            return;
+          }
+
+          renderPreview(parsedData);
+          document.getElementById('rowCount').textContent = parsedData.length;
+          document.getElementById('previewSection').classList.remove('hidden');
+          document.getElementById('actionButtons').classList.remove('hidden');
+          showStatus('✅ Archivo leído correctamente. Selecciona una acción.', 'success');
+        } catch (err) {
+          showStatus('❌ Error al procesar el archivo: ' + err.message, 'error');
+        }
+      };
+      reader.readAsBinaryString(file);
+    }
+
+    // --- VISTA PREVIA ---
+    function renderPreview(data) {
+      const table = document.getElementById('previewTable');
+      const thead = table.querySelector('thead');
+      const tbody = table.querySelector('tbody');
+      thead.innerHTML = ''; tbody.innerHTML = '';
+
+      const headers = Object.keys(data[0]);
+      const headerRow = document.createElement('tr');
+      headers.forEach(h => { const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th); });
+      thead.appendChild(headerRow);
+
+      // Mostrar máximo 5 filas para no saturar
+      data.slice(0, 5).forEach(row => {
+        const tr = document.createElement('tr');
+        headers.forEach(h => { const td = document.createElement('td'); td.textContent = row[h] ?? ''; tr.appendChild(td); });
+        tbody.appendChild(tr);
+      });
+    }
+
+    // --- ACCIONES ---
+    function loadLocally() {
+      try {
+        localStorage.setItem('perufibra_data', JSON.stringify(parsedData));
+        updateStats(parsedData);
+        showStatus('💾 Datos cargados localmente y guardados en memoria del navegador.', 'success');
+        // Aquí puedes disparar tu función de renderizado de tabla principal si la tienes
+      } catch (err) {
+        showStatus('❌ Error al guardar localmente: ' + err.message, 'error');
+      }
+    }
+
+    async function importToSupabase() {
+      if (!appConfig.url || !appConfig.key) {
+        showStatus('⚠️ Configura primero las credenciales de Supabase.', 'error');
+        toggleConfig();
+        return;
+      }
+
+      showStatus('🔄 Conectando y enviando ' + parsedData.length + ' registros...', 'success');
+      try {
+        const res = await fetch(`${appConfig.url}/rest/v1/${appConfig.table}`, {
+          method: 'POST',
+          headers: {
+            'apikey': appConfig.key,
+            'Authorization': `Bearer ${appConfig.key}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(parsedData)
+        });
+
+        if (!res.ok) {
+          const err = await res.text();
+          throw new Error(err);
+        }
+
+        showStatus('✅ Importación a Supabase exitosa.', 'success');
+        // Opcional: limpiar o actualizar UI
+      } catch (err) {
+        showStatus('❌ Error Supabase: ' + err.message, 'error');
+      }
+    }
+
+    // --- UTILIDADES ---
+    function updateStats(data) {
+      const total = data.length;
+      const getField = (obj, keys) => keys.find(k => obj[k] !== undefined)?.toLowerCase() || '';
+      const getStatus = (row) => {
+        const val = row['Estado'] || row['estado'] || row['ESTADO'] || '';
+        return String(val).trim().toUpperCase();
+      };
+      const getTech = (row) => row['Técnico'] || row['Tecnico'] || row['TECNICO'] || row['tecnico'] || '';
+
+      const atendidos = data.filter(r => getStatus(r) === 'ATENDIDO').length;
+      const ausentes = data.filter(r => getStatus(r) === 'AUSENTE').length;
+      const pendientes = data.filter(r => getStatus(r) === 'PENDIENTE').length;
+      const tecnicos = new Set(data.map(r => getTech(r)).filter(Boolean)).size;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statAtendidos').textContent = atendidos;
+      document.getElementById('statAusentes').textContent = ausentes;
+      document.getElementById('statPendientes').textContent = pendientes;
+      document.getElementById('statTecnicos').textContent = tecnicos;
+    }
+
+    function loadLocalDataIfExists() {
+      const local = localStorage.getItem('perufibra_data');
+      if (local) {
+        try { updateStats(JSON.parse(local)); } catch {}
+      }
+    }
+
+    // --- CONFIG ---
+    function toggleConfig() {
+      document.getElementById('configSection').classList.toggle('hidden');
+    }
+    function loadConfigToInputs() {
+      if (appConfig.url) document.getElementById('sbUrl').value = appConfig.url;
+      if (appConfig.key) document.getElementById('sbKey').value = appConfig.key;
+      if (appConfig.table) document.getElementById('sbTable').value = appConfig.table;
+    }
+    function saveConfig() {
+      appConfig.url = document.getElementById('sbUrl').value.trim().replace(/\/$/, '');
+      appConfig.key = document.getElementById('sbKey').value.trim();
+      appConfig.table = document.getElementById('sbTable').value.trim() || 'BASE_PERUFIBRA';
+      localStorage.setItem('tecsycom_cfg', JSON.stringify(appConfig));
+      document.getElementById('configStatus').innerHTML = '<div class="status-msg success">✅ Configuración guardada.</div>';
+      setTimeout(() => { toggleConfig(); document.getElementById('configStatus').innerHTML = ''; }, 1000);
+    }
+
+    function showStatus(msg, type) {
+      const el = document.getElementById('mainStatus');
+      el.innerHTML = `<div class="status-msg ${type}">${msg}</div>`;
+      setTimeout(() => el.innerHTML = '', 4000);
+    }
+  </script>
 </body>
 </html>
