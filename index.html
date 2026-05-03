@@ -1,575 +1,1536 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TECSYCOM — Gestión PERUFIBRA</title>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <style>
-    :root { --bg: #f8fafc; --card: #ffffff; --border: #e2e8f0; --primary: #2563eb; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --text: #0f172a; --muted: #64748b; --radius: 10px; }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); line-height: 1.5; }
-    
-    .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
-    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: 0.2s; }
-    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-    .btn.primary { background: var(--primary); color: white; }
-    .btn.success { background: var(--success); color: white; }
-    .btn.secondary { background: #e2e8f0; color: var(--text); }
-    .btn.danger { background: var(--danger); color: white; }
-    .btn.small { padding: 6px 10px; font-size: 0.8rem; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TECSYCOM – Gestión PERUFIBRA</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .grid { display: grid; gap: 12px; }
-    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-    .grid-4 { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
-    
-    .header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
-    .header h1 { font-size: 1.2rem; font-weight: 700; }
-    .nav-links { display: flex; gap: 12px; font-size: 0.85rem; color: var(--muted); }
-    .nav-links span { cursor: pointer; }
-    .nav-links span:hover { color: var(--primary); }
-    .status-badge { padding: 4px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #fee2e2; color: #991b1b; }
-    .status-badge.online { background: #dcfce7; color: #166534; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f0f2f5;
+  color: #1a2332;
+  min-height: 100vh;
+  font-size: 14px;
+}
 
-    .warning-banner { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; }
-    .warning-banner a { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: underline; }
+/* ── TOPBAR ── */
+#topbar {
+  background: #ffffff;
+  border-bottom: 2px solid #e2e8f0;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
 
-    .stat-card { text-align: center; padding: 20px 10px; }
-    .stat-card .val { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
-    .stat-card .lbl { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-    .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 16px 0; }
-    .filter-bar select, .filter-bar input { padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: white; min-width: 140px; }
-    
-    .table-wrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--border); border-radius: 8px; max-height: 400px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
-    th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; }
-    th { background: #f8fafc; font-weight: 600; position: sticky; top: 0; }
-    tr:hover td { background: #f1f5f9; }
-    
-    .pagination { display: flex; justify-content: space-between; align-items: center; margin: 12px 0; font-size: 0.9rem; color: var(--muted); }
-    
-    .upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; transition: 0.2s; background: #fafbfc; margin: 20px 0; }
-    .upload-zone:hover, .upload-zone.drag { border-color: var(--primary); background: #eff6ff; }
-    .upload-zone input { display: none; }
-    
-    .preview-table { max-height: 150px; overflow-y: auto; margin-top: 12px; border: 1px solid var(--border); border-radius: 6px; }
-    .preview-table table { font-size: 12px; }
-    
-    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: 0.2s; }
-    .modal.active { opacity: 1; pointer-events: all; }
-    .modal-content { background: var(--card); padding: 24px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .modal input { width: 100%; padding: 10px; margin: 8px 0 16px; border: 1px solid var(--border); border-radius: 6px; }
-    .hidden { display: none !important; }
-    .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 18px; border-radius: 8px; color: white; font-weight: 500; transform: translateY(20px); opacity: 0; transition: 0.3s; z-index: 200; }
-    .toast.show { transform: translateY(0); opacity: 1; }
-    .toast.success { background: var(--success); }
-    .toast.error { background: var(--danger); }
-    .toast.info { background: var(--primary); }
+.brand-icon {
+  width: 38px; height: 38px;
+  background: #1d4ed8;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  color: white;
+  font-weight: bold;
+  flex-shrink: 0;
+}
 
-    @media (max-width: 640px) {
-      .nav-links { display: none; }
-      .grid-2, .grid-4 { grid-template-columns: 1fr; }
-      .filter-bar { flex-direction: column; align-items: stretch; }
-      .filter-bar select, .filter-bar input { width: 100%; }
-    }
-  </style>
+.brand-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1d4ed8;
+  letter-spacing: 1px;
+}
+
+.brand-sub {
+  font-size: 10px;
+  color: #64748b;
+  letter-spacing: 2px;
+  font-weight: 500;
+}
+
+nav { display: flex; gap: 2px; margin-left: 20px; }
+
+.nav-btn {
+  padding: 7px 16px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.nav-btn:hover { background: #f1f5f9; color: #1d4ed8; }
+.nav-btn.active { background: #eff6ff; color: #1d4ed8; font-weight: 600; }
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.conn-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+.dot.on { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
+
+#rec-count {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.btn-cfg {
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.btn-cfg:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+/* ── MAIN ── */
+#main { position: relative; }
+
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── BOTONES GENERALES ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px;
+  border-radius: 7px;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-blue  { background: #1d4ed8; color: #fff; }
+.btn-blue:hover  { background: #1e40af; }
+.btn-green { background: #16a34a; color: #fff; }
+.btn-green:hover { background: #15803d; }
+.btn-white { background: #fff; color: #374151; border: 1px solid #d1d5db; }
+.btn-white:hover { background: #f9fafb; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+
+/* ── DASHBOARD ── */
+#view-menu { padding: 28px 28px; max-width: 1100px; margin: 0 auto; }
+
+.page-header { margin-bottom: 28px; }
+.page-header h1 { font-size: 22px; font-weight: 700; color: #0f172a; }
+.page-header p  { color: #64748b; margin-top: 4px; font-size: 13px; }
+
+.warn-bar {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 12px 18px;
+  margin-bottom: 24px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: #92400e;
+}
+.warn-bar.hidden { display: none; }
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 20px 16px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.stat-val {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+  color: #1d4ed8;
+}
+.stat-val.green  { color: #16a34a; }
+.stat-val.orange { color: #d97706; }
+.stat-val.teal   { color: #0891b2; }
+.stat-val.purple { color: #7c3aed; }
+
+.stat-label {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 6px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Menu cards */
+.section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 32px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 20px 18px;
+  cursor: pointer;
+  transition: all 0.18s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.card:hover {
+  border-color: #93c5fd;
+  box-shadow: 0 4px 16px rgba(29,78,216,0.1);
+  transform: translateY(-2px);
+}
+.card-icon  { font-size: 26px; }
+.card-title { font-size: 14px; font-weight: 700; color: #1e293b; }
+.card-desc  { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+
+.card.blue   { border-top: 3px solid #1d4ed8; }
+.card.green  { border-top: 3px solid #16a34a; }
+.card.amber  { border-top: 3px solid #d97706; }
+.card.gray   { border-top: 3px solid #94a3b8; }
+
+/* ── GESTIÓN VIEW ── */
+#view-gestion {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 58px);
+}
+
+.view-header {
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px 24px;
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+}
+
+.view-header h2 { font-size: 15px; font-weight: 700; color: #0f172a; }
+
+.badge-count {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.toolbar {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 20px;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  flex-shrink: 0;
+}
+
+.search-box {
+  position: relative;
+  flex: 1; min-width: 200px; max-width: 340px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 7px 10px 7px 32px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  font-size: 13px;
+  background: #fff;
+  color: #1a2332;
+  outline: none;
+}
+.search-box input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+.search-ico { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px; pointer-events: none; }
+
+select.filter {
+  padding: 7px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  font-size: 12px;
+  background: #fff;
+  color: #374151;
+  outline: none;
+  cursor: pointer;
+}
+select.filter:focus { border-color: #3b82f6; }
+
+.table-area {
+  flex: 1;
+  overflow: auto;
+  background: #fff;
+}
+
+table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+  font-size: 12px;
+}
+
+thead {
+  position: sticky; top: 0; z-index: 5;
+}
+
+.th-group {
+  background: #1d4ed8;
+  color: #fff;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 6px;
+  border-right: 1px solid rgba(255,255,255,0.2);
+}
+
+th {
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  letter-spacing: 0.3px;
+}
+th:hover { background: #eff6ff; color: #1d4ed8; }
+
+td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+  color: #334155;
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+tbody tr:hover { background: #f8fbff; }
+tbody tr:nth-child(even) { background: #fafbfc; }
+tbody tr:nth-child(even):hover { background: #f0f7ff; }
+
+.rn { color: #94a3b8; font-size: 11px; text-align: center; width: 36px; }
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+.b-green  { background: #dcfce7; color: #16a34a; }
+.b-orange { background: #fef3c7; color: #d97706; }
+.b-blue   { background: #dbeafe; color: #1d4ed8; }
+.b-red    { background: #fee2e2; color: #dc2626; }
+.b-gray   { background: #f1f5f9; color: #64748b; }
+
+/* Inline edit */
+.editable { cursor: text; }
+.editable:hover { background: #fffbeb !important; }
+
+.cell-input {
+  border: 2px solid #3b82f6;
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 2px 6px;
+  width: 100%;
+  min-width: 80px;
+  background: #fff;
+  color: #1a2332;
+  outline: none;
+}
+
+/* Pagination */
+.pager {
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
+  padding: 10px 20px;
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.pg-btn {
+  padding: 4px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 12px;
+  color: #374151;
+  cursor: pointer;
+}
+.pg-btn:hover:not(:disabled) { border-color: #1d4ed8; color: #1d4ed8; }
+.pg-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.pg-btn.active { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+#page-info { margin-left: auto; font-size: 12px; color: #64748b; }
+
+/* Empty */
+.empty {
+  text-align: center;
+  padding: 80px 24px;
+  color: #94a3b8;
+}
+.empty-icon  { font-size: 52px; margin-bottom: 14px; }
+.empty-title { font-size: 18px; font-weight: 700; color: #475569; margin-bottom: 8px; }
+.empty-desc  { font-size: 13px; }
+
+/* ── UPLOAD VIEW ── */
+#view-upload { padding: 32px 28px; max-width: 800px; margin: 0 auto; }
+
+/* ╔══════════════════════════════════════╗
+   ║  ZONA DE CARGA — MÉTODO LABEL PURO  ║
+   ╚══════════════════════════════════════╝
+   El label está conectado al input por el atributo "for".
+   Hacer clic en CUALQUIER parte del label abre el selector.
+   No se usa JS para esto — es comportamiento nativo del navegador. */
+
+#file-input-real {
+  /* Oculto pero accesible: width/height 0 evita espacio en layout */
+  position: absolute;
+  width: 0; height: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+
+label[for="file-input-real"] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #93c5fd;
+  border-radius: 14px;
+  padding: 52px 32px;
+  background: #f0f7ff;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  margin-bottom: 24px;
+  user-select: none;
+}
+
+label[for="file-input-real"]:hover,
+label[for="file-input-real"].drag-over {
+  background: #dbeafe;
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 4px rgba(29,78,216,0.1);
+}
+
+.upload-icon { font-size: 52px; margin-bottom: 16px; }
+
+.upload-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.upload-sub {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 22px;
+  line-height: 1.6;
+}
+
+.upload-cta {
+  background: #1d4ed8;
+  color: #fff;
+  border-radius: 8px;
+  padding: 12px 32px;
+  font-size: 15px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none; /* el clic lo maneja el label */
+  box-shadow: 0 2px 8px rgba(29,78,216,0.3);
+}
+
+.upload-hint {
+  margin-top: 14px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Preview table */
+.preview-box {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.preview-header {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px 18px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.preview-header strong { font-size: 14px; font-weight: 700; color: #0f172a; }
+
+.preview-scroll { overflow: auto; max-height: 360px; }
+
+.preview-scroll table { font-size: 12px; width: 100%; }
+.preview-scroll th { background: #f8fafc; padding: 8px 12px; text-align: left; font-size: 11px; color: #64748b; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+.preview-scroll td { padding: 7px 12px; border-bottom: 1px solid #f1f5f9; color: #334155; white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+
+.preview-footer {
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  padding: 12px 18px;
+  display: flex; gap: 10px; align-items: center;
+}
+
+/* ── MODAL ── */
+#modal-bg {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(15,23,42,0.45);
+  backdrop-filter: blur(3px);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+#modal-bg.open { display: flex; }
+
+.modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 32px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: mIn 0.2s ease;
+}
+@keyframes mIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; color: #0f172a; }
+.modal p  { font-size: 13px; color: #64748b; margin-bottom: 22px; }
+
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+.field input  {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: #1a2332;
+  outline: none;
+  font-family: inherit;
+}
+.field input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+
+.sql-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  padding: 12px;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  color: #334155;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-height: 130px;
+  overflow-y: auto;
+  margin-top: 6px;
+}
+
+.modal-btns { display: flex; gap: 10px; margin-top: 22px; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  z-index: 500;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.t {
+  background: #1e293b;
+  color: #f1f5f9;
+  padding: 11px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  display: flex; align-items: center; gap: 8px;
+  animation: tIn 0.25s ease;
+  max-width: 360px;
+}
+@keyframes tIn {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.t.ok  { background: #166534; }
+.t.err { background: #991b1b; }
+.t.inf { background: #1e3a5f; }
+
+/* ── LOADING ── */
+#loader {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(255,255,255,0.75);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+}
+#loader.on { display: flex; }
+.spin {
+  width: 40px; height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #1d4ed8;
+  border-radius: 50%;
+  animation: sp 0.7s linear infinite;
+}
+@keyframes sp { to { transform: rotate(360deg); } }
+#loader p { font-size: 13px; color: #475569; font-weight: 500; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+@media (max-width: 640px) {
+  nav { display: none; }
+  #view-menu, #view-upload { padding: 16px; }
+  .cards-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="header">
+<!-- ══ TOPBAR ══ -->
+<div id="topbar">
+  <div class="brand">
+    <div class="brand-icon">T</div>
     <div>
-      <h1>📋 TECSYCOM <span style="font-weight:400; color:var(--muted);">GESTIÓN</span></h1>
-    </div>
-    <div class="nav-links">
-      <span onclick="showSection('home')">🏠 Inicio</span>
-      <span onclick="showSection('table')">📊 Base PERUFIBRA</span>
-      <span onclick="toggleModal('uploadModal')">⬆️ Cargar Excel</span>
-      <span id="connStatus" class="status-badge">Sin conexión</span>
-      <span onclick="toggleModal('configModal')">⚙️ Config</span>
-    </div>
-  </header>
-
-  <main class="container">
-    <!-- WARNING BANNER -->
-    <div id="warningBanner" class="warning-banner hidden">
-      ⚠️ Configura las credenciales de Supabase para activar la sincronización en tiempo real. 
-      <a onclick="toggleModal('configModal')">Configurar ahora</a>
-    </div>
-
-    <!-- STATS -->
-    <section id="statsPanel" class="grid grid-4" style="margin-bottom:20px;">
-      <div class="card stat-card"><div class="val" id="statTotal">0</div><div class="lbl">Total Registros</div></div>
-      <div class="card stat-card"><div class="val" id="statAtendidos" style="color:var(--success)">0</div><div class="lbl">Atendidos</div></div>
-      <div class="card stat-card"><div class="val" id="statAusentes" style="color:var(--warning)">0</div><div class="lbl">Ausentes</div></div>
-      <div class="card stat-card"><div class="val" id="statPendientes" style="color:var(--primary)">0</div><div class="lbl">Pendientes</div></div>
-      <div class="card stat-card"><div class="val" id="statTecnicos">0</div><div class="lbl">Técnicos</div></div>
-    </section>
-
-    <!-- SECCIÓN: INICIO -->
-    <section id="homeSection">
-      <div class="card" style="margin-bottom:20px; text-align:center; padding:30px;">
-        <h2 style="font-size:1.4rem; margin-bottom:8px;">GESTIÓN PERUFIBRA</h2>
-        <p style="color:var(--muted)">TECSYCOM · Sistema de Control de Instalaciones y Técnicos</p>
-      </div>
-
-      <h3 style="margin:20px 0 10px;">Módulos Principales</h3>
-      <div class="grid grid-2">
-        <div class="card" onclick="showSection('table')" style="cursor:pointer; border-left:4px solid var(--primary);">
-          <h4>📊 Base PERUFIBRA</h4>
-          <p style="font-size:0.9rem; color:var(--muted); margin-top:4px;">Ver, editar y buscar en la tabla de instalaciones en tiempo real.</p>
-        </div>
-        <div class="card" onclick="toggleModal('uploadModal')" style="cursor:pointer; border-left:4px solid var(--success);">
-          <h4>⬆️ Cargar Excel</h4>
-          <p style="font-size:0.9rem; color:var(--muted); margin-top:4px;">Importar registros nuevos desde un archivo Excel sin duplicar datos.</p>
-        </div>
-        <div class="card" onclick="downloadExcel()" style="cursor:pointer; border-left:4px solid var(--warning);">
-          <h4>⬇️ Descargar Excel</h4>
-          <p style="font-size:0.9rem; color:var(--muted); margin-top:4px;">Exportar los datos actuales con formato BASE_PERUFIBRA.</p>
-        </div>
-        <div class="card" onclick="toggleModal('configModal')" style="cursor:pointer; border-left:4px solid #6366f1;">
-          <h4>🔗 Configurar Supabase</h4>
-          <p style="font-size:0.9rem; color:var(--muted); margin-top:4px;">Ingresar URL y API Key para activar la sincronización en tiempo real.</p>
-        </div>
-      </div>
-
-      <h3 style="margin:24px 0 10px;">Acciones Rápidas</h3>
-      <div class="grid grid-2">
-        <div class="card"><h4>📍 Mapa de Técnicos</h4><p style="font-size:0.85rem; color:var(--muted);">Próximamente — visualización geográfica.</p></div>
-        <div class="card"><h4>📈 Reportes</h4><p style="font-size:0.85rem; color:var(--muted);">Próximamente — estadísticas y gráficos.</p></div>
-        <div class="card"><h4>🔔 Alertas</h4><p style="font-size:0.85rem; color:var(--muted);">Próximamente — notificaciones críticas.</p></div>
-        <div class="card"><h4>👥 Técnicos</h4><p style="font-size:0.85rem; color:var(--muted);">Próximamente — gestión de cuadrillas.</p></div>
-      </div>
-    </section>
-
-    <!-- SECCIÓN: TABLA -->
-    <section id="tableSection" class="hidden">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-        <h3>📊 Base PERUFIBRA <span style="font-size:0.9rem; color:var(--muted);" id="tableCount">(0 registros)</span></h3>
-        <div style="display:flex; gap:8px;">
-          <button class="btn secondary small" onclick="downloadExcel()">⬇️ Descargar Excel</button>
-          <button class="btn secondary small" onclick="syncFromSupabase()">🔄 Recargar</button>
-        </div>
-      </div>
-
-      <div class="filter-bar">
-        <input type="text" id="searchInput" placeholder="🔍 Buscar..." oninput="applyFilters()">
-        <select id="filterEstado" onchange="applyFilters()">
-          <option value="">— Estado —</option>
-          <option value="ATENDIDO">ATENDIDO</option>
-          <option value="AUSENTE">AUSENTE</option>
-          <option value="PENDIENTE">PENDIENTE</option>
-          <option value="CANCELADO">CANCELADO</option>
-        </select>
-        <select id="filterTecnico" onchange="applyFilters()">
-          <option value="">— Técnico —</option>
-        </select>
-        <select id="filterTramo" onchange="applyFilters()">
-          <option value="">— Tramo —</option>
-          <option value="08AM-12PM">08AM-12PM</option>
-          <option value="12PM-16PM">12PM-16PM</option>
-          <option value="16PM-20PM">16PM-20PM</option>
-        </select>
-        <button class="btn danger small" onclick="clearFilters()">✕ Limpiar</button>
-      </div>
-
-      <div class="table-wrap">
-        <table id="dataTable">
-          <thead><tr id="tableHead"></tr></thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-      </div>
-      <div class="pagination">
-        <button class="btn secondary small" id="prevBtn" onclick="changePage(-1)">‹ Anterior</button>
-        <span id="pageInfo">Página 1</span>
-        <button class="btn secondary small" id="nextBtn" onclick="changePage(1)">Siguiente ›</button>
-      </div>
-    </section>
-
-    <!-- SECCIÓN: CARGA EXCEL -->
-    <section id="uploadSection" class="hidden">
-      <div class="upload-zone" id="dropZone">
-        <p style="font-size:1.1rem; margin-bottom:6px;">📁 Selecciona tu archivo Excel</p>
-        <small style="color:var(--muted)">Solo se procesará la hoja <strong>BASE_PERUFIBRA</strong></small><br><br>
-        <small>📂 Buscar archivo Excel... o arrastra el archivo .xlsx / .xls aquí</small>
-        <input type="file" id="fileInput" accept=".xlsx, .xls">
-      </div>
-
-      <div id="previewContainer" class="card hidden">
-        <h4 style="margin-bottom:8px;">Vista previa <span id="previewCount" style="font-size:0.9rem; color:var(--muted);">(0 filas)</span></h4>
-        <div class="preview-table" id="previewTableWrap"></div>
-        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn success" onclick="importToSupabase()">✅ Importar a Supabase</button>
-          <button class="btn primary" onclick="loadLocally()">💾 Cargar localmente</button>
-          <button class="btn secondary" onclick="closeUpload()">Cancelar</button>
-        </div>
-        <div id="uploadStatus" style="margin-top:8px; font-size:0.9rem;"></div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- MODAL CONFIG SUPABASE -->
-  <div id="configModal" class="modal">
-    <div class="modal-content">
-      <h3 style="margin-bottom:12px;">⚙️ Configuración Supabase</h3>
-      <p style="font-size:0.9rem; color:var(--muted); margin-bottom:12px;">Ingresa tus credenciales para activar la sincronización en tiempo real.</p>
-      <label>URL del Proyecto Supabase</label>
-      <input type="url" id="cfgUrl" placeholder="https://xxxx.supabase.co">
-      <label>API Key (anon / public)</label>
-      <input type="text" id="cfgKey" placeholder="eyJhbGciOiJIUzI1NiIs...">
-      <label>Nombre de la tabla en Supabase</label>
-      <input type="text" id="cfgTable" value="BASE_PERUFIBRA">
-      <details style="margin:8px 0; font-size:0.85rem; color:var(--muted);">
-        <summary style="cursor:pointer;">SQL para crear la tabla</summary>
-        <pre style="background:#f1f5f9; padding:8px; border-radius:4px; margin-top:4px; overflow-x:auto;">CREATE TABLE BASE_PERUFIBRA (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  orden TEXT UNIQUE,
-  cliente TEXT,
-  direccion TEXT,
-  tecnico TEXT,
-  tramo TEXT,
-  estado TEXT,
-  fecha DATE
-);</pre>
-      </details>
-      <div style="display:flex; gap:10px; margin-top:16px;">
-        <button class="btn primary" onclick="saveConfig()">💾 Guardar y conectar</button>
-        <button class="btn secondary" onclick="toggleModal('configModal')">Cancelar</button>
-      </div>
-      <div id="configStatus" style="margin-top:8px; text-align:center;"></div>
+      <div class="brand-name">TECSYCOM</div>
+      <div class="brand-sub">GESTIÓN</div>
     </div>
   </div>
 
-  <div id="toast" class="toast"></div>
+  <nav>
+    <button class="nav-btn active" onclick="show('menu')">🏠 Inicio</button>
+    <button class="nav-btn" onclick="show('gestion')">📊 Base PERUFIBRA</button>
+    <button class="nav-btn" onclick="show('upload')">📂 Cargar Excel</button>
+  </nav>
 
-  <script>
-    // ================= ESTADO GLOBAL =================
-    let rawData = [];
-    let filteredData = [];
-    let currentPage = 1;
-    const rowsPerPage = 20;
-    let config = JSON.parse(localStorage.getItem('tecsycom_cfg') || '{}');
-    let parsedExcelData = [];
+  <div class="topbar-right">
+    <div class="conn-badge">
+      <div class="dot" id="dot"></div>
+      <span id="conn-txt">Sin conexión</span>
+    </div>
+    <span id="rec-count">0 registros</span>
+    <button class="btn-cfg" onclick="openCfg()">⚙️ Configurar</button>
+  </div>
+</div>
 
-    // ================= INICIALIZACIÓN =================
-    document.addEventListener('DOMContentLoaded', () => {
-      loadLocalData();
-      loadConfigToInputs();
-      setupDragDrop();
-      checkConnectionStatus();
-      showSection('home');
+<!-- ══ VISTAS ══ -->
+<div id="main">
+
+  <!-- ─── INICIO ─── -->
+  <div id="view-menu" class="view active" style="padding:28px;max-width:1100px;margin:0 auto;">
+
+    <div class="page-header">
+      <h1>📋 Gestión PERUFIBRA — TECSYCOM</h1>
+      <p>Sistema de control de instalaciones y técnicos en tiempo real</p>
+    </div>
+
+    <div id="warn-bar" class="warn-bar">
+      ⚠️ Configura las credenciales de Supabase para activar la sincronización en tiempo real.
+      <button class="btn btn-white btn-sm" style="margin-left:auto;" onclick="openCfg()">Configurar ahora →</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-val" id="s-total">0</div><div class="stat-label">Total Registros</div></div>
+      <div class="stat-card"><div class="stat-val green" id="s-atend">0</div><div class="stat-label">Atendidos</div></div>
+      <div class="stat-card"><div class="stat-val orange" id="s-ausen">0</div><div class="stat-label">Ausentes</div></div>
+      <div class="stat-card"><div class="stat-val blue" id="s-pend">0</div><div class="stat-label">Pendientes</div></div>
+      <div class="stat-card"><div class="stat-val purple" id="s-tec">0</div><div class="stat-label">Técnicos</div></div>
+    </div>
+
+    <div class="section-title">Módulos Principales</div>
+    <div class="cards-grid">
+      <div class="card blue" onclick="show('gestion')">
+        <div class="card-icon">📊</div>
+        <div class="card-title">Base PERUFIBRA</div>
+        <div class="card-desc">Ver, editar y buscar registros de instalaciones en tiempo real.</div>
+      </div>
+      <div class="card blue" onclick="show('upload')">
+        <div class="card-icon">📂</div>
+        <div class="card-title">Cargar Excel</div>
+        <div class="card-desc">Importar registros nuevos desde archivo Excel (.xlsx).</div>
+      </div>
+      <div class="card green" onclick="downloadExcel()">
+        <div class="card-icon">⬇️</div>
+        <div class="card-title">Descargar Excel</div>
+        <div class="card-desc">Exportar datos actuales en formato BASE_PERUFIBRA.</div>
+      </div>
+      <div class="card amber" onclick="openCfg()">
+        <div class="card-icon">🔗</div>
+        <div class="card-title">Configurar Supabase</div>
+        <div class="card-desc">URL y API Key para sincronización en tiempo real.</div>
+      </div>
+    </div>
+
+    <div class="section-title">Acciones Rápidas (próximamente)</div>
+    <div class="cards-grid">
+      <div class="card gray"><div class="card-icon">📍</div><div class="card-title">Mapa de Técnicos</div><div class="card-desc">Visualización geográfica de instalaciones.</div></div>
+      <div class="card gray"><div class="card-icon">📈</div><div class="card-title">Reportes</div><div class="card-desc">Estadísticas y gráficos de producción diaria.</div></div>
+      <div class="card gray"><div class="card-icon">🔔</div><div class="card-title">Alertas</div><div class="card-desc">Notificaciones de reingresos y pendientes críticos.</div></div>
+      <div class="card gray"><div class="card-icon">👥</div><div class="card-title">Técnicos</div><div class="card-desc">Gestión de cuadrillas y asignación de tramos.</div></div>
+    </div>
+  </div>
+
+  <!-- ─── GESTIÓN ─── -->
+  <div id="view-gestion" class="view" style="display:flex;flex-direction:column;height:calc(100vh - 58px);">
+
+    <div class="view-header">
+      <h2>📊 Base PERUFIBRA</h2>
+      <span class="badge-count" id="tbl-badge">0 registros</span>
+      <div style="margin-left:auto;display:flex;gap:8px;">
+        <button class="btn btn-green btn-sm" onclick="downloadExcel()">⬇️ Descargar Excel</button>
+        <button class="btn btn-white btn-sm" onclick="recargar()">🔄 Recargar</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-ico">🔍</span>
+        <input id="q" type="text" placeholder="Buscar cliente, DNI, técnico, estado..." oninput="filtrar()"/>
+      </div>
+      <select class="filter" id="f-estado" onchange="filtrar()">
+        <option value="">— Estado —</option>
+        <option>ATENDIDO</option><option>AUSENTE</option>
+        <option>PENDIENTE</option><option>CANCELADO</option>
+      </select>
+      <select class="filter" id="f-tecnico" onchange="filtrar()">
+        <option value="">— Técnico —</option>
+      </select>
+      <select class="filter" id="f-tramo" onchange="filtrar()">
+        <option value="">— Tramo —</option>
+        <option>08AM-12PM</option><option>12PM-16PM</option><option>16PM-20PM</option>
+      </select>
+      <button class="btn btn-white btn-sm" onclick="limpiar()">✕ Limpiar</button>
+    </div>
+
+    <div class="table-area" id="table-area">
+      <div class="empty" id="empty-state">
+        <div class="empty-icon">📂</div>
+        <div class="empty-title">Sin datos cargados</div>
+        <div class="empty-desc" style="margin-bottom:18px;">Carga un archivo Excel o configura Supabase para comenzar.</div>
+        <button class="btn btn-blue btn-sm" onclick="show('upload')">📂 Cargar Excel</button>
+      </div>
+      <table id="tbl" style="display:none">
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="pager">
+      <button class="pg-btn" id="btn-prev" onclick="pg(-1)">‹ Anterior</button>
+      <div id="pg-nums" style="display:flex;gap:4px;"></div>
+      <button class="pg-btn" id="btn-next" onclick="pg(1)">Siguiente ›</button>
+      <span id="page-info">—</span>
+    </div>
+  </div>
+
+  <!-- ─── CARGA EXCEL ─── -->
+  <div id="view-upload" class="view">
+
+    <!-- INPUT REAL - oculto con width/height 0 -->
+    <input type="file"
+           id="file-input-real"
+           accept=".xlsx,.xls"
+           onchange="onFileSelected(this)"/>
+
+    <!-- LABEL conectado al input por "for" — 100% nativo, sin JS -->
+    <label for="file-input-real"
+           id="drop-zone"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="onDrop(event)">
+      <div class="upload-icon">📁</div>
+      <div class="upload-title">Selecciona tu archivo Excel</div>
+      <div class="upload-sub">
+        Haz clic en el botón o arrastra el archivo aquí.<br/>
+        Solo se procesará la hoja <strong>BASE_PERUFIBRA</strong>.
+      </div>
+      <div class="upload-cta">📂 &nbsp;Buscar archivo Excel...</div>
+      <div class="upload-hint">Formatos aceptados: .xlsx &nbsp;·&nbsp; .xls</div>
+    </label>
+
+    <!-- VISTA PREVIA -->
+    <div id="preview-box" class="preview-box" style="display:none;">
+      <div class="preview-header">
+        <strong id="prev-title">Vista previa</strong>
+        <span class="badge-count" id="prev-badge">0 filas</span>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <button class="btn btn-blue btn-sm" onclick="importarSupabase()">✅ Importar a Supabase</button>
+          <button class="btn btn-white btn-sm" onclick="importarLocal()">💾 Cargar localmente</button>
+        </div>
+      </div>
+      <div class="preview-scroll">
+        <table>
+          <thead id="prev-head"></thead>
+          <tbody id="prev-body"></tbody>
+        </table>
+      </div>
+      <div class="preview-footer">
+        <span id="prev-info" style="color:#64748b;font-size:12px;">Mostrando primeros 10 registros</span>
+        <button class="btn btn-white btn-sm" style="margin-left:auto;" onclick="document.getElementById('preview-box').style.display='none';document.getElementById('file-input-real').value=''">✕ Cancelar</button>
+      </div>
+    </div>
+
+  </div><!-- /view-upload -->
+
+</div><!-- /main -->
+
+<!-- ══ MODAL CONFIG ══ -->
+<div id="modal-bg">
+  <div class="modal">
+    <h2>⚙️ Configuración Supabase</h2>
+    <p>Ingresa tus credenciales para activar la sincronización en tiempo real.</p>
+
+    <div class="field">
+      <label>URL del Proyecto</label>
+      <input id="cfg-url" type="text" placeholder="https://xxxxxxxxxxxx.supabase.co"/>
+    </div>
+    <div class="field">
+      <label>API Key (anon / public)</label>
+      <input id="cfg-key" type="password" placeholder="eyJhbGciOiJIUzI1NiIs..."/>
+    </div>
+    <div class="field">
+      <label>Nombre de la tabla</label>
+      <input id="cfg-tbl" type="text" value="base_perufibra"/>
+    </div>
+
+    <div style="font-size:11px;color:#64748b;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">SQL para crear la tabla en Supabase</div>
+    <div class="sql-box" id="sql-box"></div>
+
+    <div class="modal-btns">
+      <button class="btn btn-blue" onclick="guardarCfg()" style="flex:1;">💾 Guardar y conectar</button>
+      <button class="btn btn-white" onclick="cerrarCfg()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOADER ══ -->
+<div id="loader">
+  <div class="spin"></div>
+  <p id="loader-txt">Cargando...</p>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════
+     SCRIPT PRINCIPAL
+══════════════════════════════════════════ -->
+<script>
+// ── ESTADO ──
+let CFG    = { url:'', key:'', tbl:'base_perufibra' };
+let DATA   = [];       // todos los registros
+let FDATA  = [];       // filtrados
+let PENDING = [];      // pendientes de importar
+let PAGE   = 1;
+const PG   = 50;
+let SORT_C = null;
+let SORT_D = 1;
+let wsConn = null;
+
+const COLS = [
+  { k:'Codigo',            l:'Código',        g:'NEGOCIO', e:true },
+  { k:'Cliente',           l:'Cliente',        g:'NEGOCIO', e:true },
+  { k:'dni',               l:'DNI',            g:'NEGOCIO', e:true },
+  { k:'Direccion',         l:'Dirección',      g:'NEGOCIO', e:true },
+  { k:'Distrito',          l:'Distrito',       g:'NEGOCIO', e:true },
+  { k:'Ref-1',             l:'Ref-1',          g:'NEGOCIO', e:true },
+  { k:'Ref-2',             l:'Ref-2',          g:'NEGOCIO', e:true },
+  { k:'Estado',            l:'Estado',         g:'NEGOCIO', e:true, b:true },
+  { k:'Tecnico',           l:'Técnico',        g:'NEGOCIO', e:true },
+  { k:'Cel_Tecnico',       l:'Cel. Técnico',   g:'NEGOCIO', e:true },
+  { k:'Tramo',             l:'Tramo',          g:'NEGOCIO', e:true },
+  { k:'Observaciones',     l:'Observaciones',  g:'NEGOCIO', e:true },
+  { k:'Reingreso',         l:'Reingreso',      g:'NEGOCIO', e:true, b:true },
+  { k:'Conteo',            l:'Conteo',         g:'NEGOCIO', e:true },
+  { k:'Segmento',          l:'Segmento',       g:'NEGOCIO', e:true },
+  { k:'Telef_Alternativo', l:'Telef. Alt.',    g:'NEGOCIO', e:true },
+  { k:'Atendido',          l:'Atendido',       g:'NEGOCIO', e:true },
+  { k:'Quantum',           l:'Quantum',        g:'NEGOCIO', e:true, b:true },
+  { k:'ONT',               l:'ONT',            g:'NEGOCIO', e:true },
+  { k:'BACK',              l:'BACK',           g:'TIEMPO',  e:true },
+];
+
+const SEARCH_K = ['Cliente','dni','Tecnico','Estado','Distrito','Codigo','Observaciones'];
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  cargarCfg();
+  construirHeader();
+  actualizarSQL();
+  if (CFG.url && CFG.key) conectar();
+  else updateConn(false, 'Sin conexión');
+});
+
+// ── NAVEGACIÓN ──
+function show(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('view-'+v);
+  el.classList.add('active');
+  // Quitar display:flex del gestion cuando no activo
+  if (v === 'gestion') el.style.display = 'flex';
+  else el.style.display = '';
+  // fix: asegúrate de que view-gestion tenga el flex correcto cuando activo
+  if (v !== 'gestion') {
+    const g = document.getElementById('view-gestion');
+    g.style.display = 'none';
+  }
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const labels = { menu:'🏠 Inicio', gestion:'📊 Base PERUFIBRA', upload:'📂 Cargar Excel' };
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    if (b.textContent.trim() === labels[v]) b.classList.add('active');
+  });
+}
+
+// Parche para que view-gestion funcione bien como flex al activarse
+document.addEventListener('DOMContentLoaded', () => {
+  // Ocultar gestion inicialmente ya que el menu está activo
+  document.getElementById('view-gestion').style.display = 'none';
+});
+
+// ── CONFIG ──
+function cargarCfg() {
+  try {
+    const s = localStorage.getItem('tcs_cfg');
+    if (s) { CFG = { ...CFG, ...JSON.parse(s) }; }
+    document.getElementById('cfg-url').value = CFG.url || '';
+    document.getElementById('cfg-key').value = CFG.key || '';
+    document.getElementById('cfg-tbl').value = CFG.tbl || 'base_perufibra';
+  } catch(e){}
+}
+
+function guardarCfg() {
+  CFG.url = document.getElementById('cfg-url').value.trim().replace(/\/$/, '');
+  CFG.key = document.getElementById('cfg-key').value.trim();
+  CFG.tbl = document.getElementById('cfg-tbl').value.trim() || 'base_perufibra';
+  localStorage.setItem('tcs_cfg', JSON.stringify(CFG));
+  cerrarCfg();
+  conectar();
+}
+
+function openCfg() { document.getElementById('modal-bg').classList.add('open'); actualizarSQL(); }
+function cerrarCfg() { document.getElementById('modal-bg').classList.remove('open'); }
+
+document.getElementById('modal-bg').addEventListener('click', e => { if (e.target === e.currentTarget) cerrarCfg(); });
+document.getElementById('cfg-tbl').addEventListener('input', actualizarSQL);
+
+function actualizarSQL() {
+  const t = document.getElementById('cfg-tbl').value || 'base_perufibra';
+  // SQL con TODAS las columnas del Excel original
+  document.getElementById('sql-box').textContent =
+`-- Ejecuta esto en SQL Editor de Supabase
+CREATE TABLE IF NOT EXISTS ${t} (
+  id BIGSERIAL PRIMARY KEY,
+  id_contrato TEXT, fecha_programacion TEXT, cod_pedido TEXT,
+  Agencia TEXT, dni_cliente TEXT, Venta TEXT, nom_cliente TEXT,
+  fec_programacion TEXT, idvisita TEXT, pp TEXT, Poligono TEXT,
+  "Tramo horario" TEXT, tipo TEXT, horario TEXT, area_venta TEXT,
+  telefono TEXT, telefono_alternativo TEXT, correo_electronico TEXT,
+  "nro_ruc cliente" TEXT, "razon_social cliente" TEXT,
+  valida_cod_pedido TEXT, latitud TEXT, longitud TEXT,
+  coordenadas_direccion TEXT, ubigeo TEXT, cod_postal TEXT,
+  direccion_cliente TEXT, torre TEXT, nro_departamento TEXT,
+  tipo_vivienda TEXT, Departamento TEXT, Provincia TEXT, Distrito_1 TEXT,
+  Campaña TEXT, Paquete TEXT, "SVA\`s" TEXT, CantidadMesh TEXT,
+  InstalacionMesh TEXT, VelocidadContratada TEXT,
+  comentario_programador TEXT,
+  cto1 TEXT, cto1_latitud TEXT, cto1_longitud TEXT,
+  cto1_metraje TEXT, cto1_poste TEXT, cto1_piso TEXT, cto1_montante TEXT,
+  cto2 TEXT, cto2_latitud TEXT, cto2_longitud TEXT,
+  cto2_metraje TEXT, cto2_poste TEXT, cto2_piso TEXT, cto2_montante TEXT,
+  cto3 TEXT, cto3_latitud TEXT, cto3_longitud TEXT,
+  cto3_metraje TEXT, cto3_poste TEXT, cto3_piso TEXT, cto3_montante TEXT,
+  tipificacion TEXT, Tipo_alta TEXT, Portabilidad TEXT,
+  Numero_Telefonico TEXT, Formulario TEXT, Comentario TEXT,
+  "Comentario del validador" TEXT, "Estado de validacion" TEXT,
+  "Tipo de validaciones" TEXT, "Status de Llamada" TEXT,
+  Programacion TEXT, "Gestion Diaria" TEXT, Tramo_1 TEXT,
+  "Foto de fachada" TEXT, "¿Quien atiende?" TEXT,
+  "Foto del Documento de identidad (TITULAR)" TEXT,
+  H_Progra TEXT, H_Inicio TEXT, H_Proceso TEXT, H_Cierre TEXT,
+  "CTO a usar" TEXT, "4ta CTO" TEXT, "Puerto Utilizado" TEXT,
+  "Foto de CTO Cerrada" TEXT, "Foto de CTO abierta + potencia" TEXT,
+  Coincide_bot TEXT, "Foto de la roseta abierta + potencia" TEXT,
+  "Foto de Ubicacion de la ONT" TEXT, "Foto del serial de la ONT" TEXT,
+  "S/N ONT, En prueba el autollenado por foto" TEXT,
+  "Foto del Speedtest" TEXT, "Foto del acta" TEXT,
+  "Foto del cliente con acta" TEXT,
+  "UBI.CTO1" TEXT, "UBI.CTO2" TEXT, "UBI.CTO3" TEXT,
+  Estado_1 TEXT, SubEstado TEXT, "Motivo.SubEstado" TEXT,
+  "Motivo.Estado" TEXT, Verificacion_Pro TEXT,
+  "1. Evidencia de la cancelacion/reprogramacion" TEXT,
+  "2. Evidencia de la cancelacion/reprogramacion" TEXT,
+  "Detalle.Estado" TEXT, "Fecha de Programación" TEXT,
+  Fecha_Gestion TEXT, "Tramo.Atencio" TEXT,
+  Partner TEXT, Cuadrilla TEXT, NEGOCIO TEXT,
+  Codigo TEXT, Cliente TEXT, dni TEXT, Direccion TEXT,
+  Distrito TEXT, "Ref-1" TEXT, "Ref-2" TEXT, Estado TEXT,
+  Tecnico TEXT, Cel_Tecnico TEXT, Tramo TEXT, Observaciones TEXT,
+  Reingreso TEXT, Conteo TEXT, Segmento TEXT,
+  Telef_Alternativo TEXT, Atendido TEXT, Quantum TEXT, ONT TEXT,
+  TIEMPO TEXT, BACK TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE ${t} DISABLE ROW LEVEL SECURITY;
+ALTER TABLE ${t} REPLICA IDENTITY FULL;`;
+}
+
+// ── SUPABASE ──
+async function apiFetch(path, opts = {}) {
+  if (!CFG.url || !CFG.key) throw new Error('Sin credenciales');
+  const headers = {
+    'apikey': CFG.key,
+    'Authorization': `Bearer ${CFG.key}`,
+    'Content-Type': 'application/json',
+    ...(opts.headers || {}),
+  };
+  if (opts.prefer) headers['Prefer'] = opts.prefer;
+
+  const r = await fetch(`${CFG.url}/rest/v1/${path}`, { ...opts, headers });
+
+  if (!r.ok) throw new Error(`Supabase ${r.status}: ${await r.text()}`);
+
+  const txt = await r.text();
+  if (!txt || txt.trim() === '') return null;
+  try { return JSON.parse(txt); } catch(e) { return null; }
+}
+
+async function conectar() {
+  if (!CFG.url || !CFG.key) { updateConn(false,'Sin credenciales'); return; }
+  loader('Conectando a Supabase...');
+  try {
+    await cargarDatos();
+    updateConn(true, 'Conectado · Tiempo real');
+    document.getElementById('warn-bar').classList.add('hidden');
+    iniciarRealtime();
+    toast('✅ Conectado a Supabase', 'ok');
+  } catch(e) {
+    updateConn(false, 'Error de conexión');
+    toast('❌ ' + e.message, 'err');
+  } finally { loader(); }
+}
+
+async function cargarDatos() {
+  if (!CFG.url || !CFG.key) return;
+  loader('Cargando datos...');
+  try {
+    const cols = COLS.map(c => `"${c.k}"`).join(',');
+    const d = await apiFetch(`${CFG.tbl}?select=id,${cols}&order=id.asc&limit=5000`);
+    if (Array.isArray(d)) {
+      DATA = d;
+      filtrar();
+      updateStats();
+      fillTecFilter();
+      toast(`🔄 ${d.length} registros cargados`, 'inf');
+    }
+  } finally { loader(); }
+}
+
+async function recargar() { await cargarDatos(); }
+
+function iniciarRealtime() {
+  if (!CFG.url || !CFG.key) return;
+  try {
+    const wUrl = CFG.url.replace('https://','wss://').replace('http://','ws://') + '/realtime/v1/websocket?apikey=' + CFG.key + '&vsn=1.0.0';
+    const ws = new WebSocket(wUrl);
+    wsConn = ws;
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ topic:`realtime:public:${CFG.tbl}`, event:'phx_join',
+        payload:{ config:{ postgres_changes:[{ event:'*', schema:'public', table:CFG.tbl }] } }, ref:'1' }));
+    };
+    ws.onmessage = msg => {
+      try {
+        const d = JSON.parse(msg.data);
+        if (d.payload && d.payload.type) manejarCambio(d.payload);
+      } catch(e){}
+    };
+    ws.onclose = () => { updateConn(false,'Reconectando...'); setTimeout(iniciarRealtime, 6000); };
+    setInterval(() => { if (ws.readyState === 1) ws.send(JSON.stringify({ topic:'phoenix', event:'heartbeat', payload:{}, ref:'' })); }, 20000);
+  } catch(e) { setInterval(cargarDatos, 15000); }
+}
+
+function manejarCambio(c) {
+  const { type, record, old_record } = c;
+  if (type === 'INSERT' && record && !DATA.find(r => r.id === record.id)) { DATA.push(record); toast('➕ Nuevo: '+(record.Cliente||''), 'inf'); }
+  else if (type === 'UPDATE' && record) { const i = DATA.findIndex(r => r.id === record.id); if (i>=0) DATA[i]=record; }
+  else if (type === 'DELETE' && old_record) { DATA = DATA.filter(r => r.id !== old_record.id); }
+  filtrar(); updateStats();
+}
+
+// ── TABLA ──
+function construirHeader() {
+  const grupos = {};
+  COLS.forEach(c => { grupos[c.g] = (grupos[c.g]||0)+1; });
+  let gr = '<tr><th class="th-group rn" rowspan="2" style="background:#1d4ed8;color:#fff;">#</th>';
+  Object.entries(grupos).forEach(([g,n]) => gr += `<th class="th-group" colspan="${n}">${g}</th>`);
+  gr += '</tr>';
+  let cr = '<tr>';
+  COLS.forEach((c,i) => cr += `<th onclick="sortBy(${i})">${c.l} <span id="si${i}" style="opacity:0.4">↕</span></th>`);
+  cr += '</tr>';
+  document.getElementById('thead').innerHTML = gr + cr;
+}
+
+function renderTabla() {
+  const tbl   = document.getElementById('tbl');
+  const empty = document.getElementById('empty-state');
+  const tbody = document.getElementById('tbody');
+  const total = FDATA.length;
+  const s = (PAGE-1)*PG;
+  const slice = FDATA.slice(s, s+PG);
+
+  if (!total) { tbl.style.display='none'; empty.style.display='block'; return; }
+  tbl.style.display=''; empty.style.display='none';
+
+  tbody.innerHTML = slice.map((row, ri) => {
+    let tds = `<td class="rn">${s+ri+1}</td>`;
+    COLS.forEach(c => {
+      let v = row[c.k] ?? '';
+      if (v === 'nan' || v === null) v = '';
+      v = String(v);
+      let content = c.b && v ? `<span class="badge ${badgeCls(v)}">${v}</span>` : esc(v);
+      const ed = c.e ? 'class="editable" ondblclick="editCell(this,\''+row.id+'\',\''+c.k+'\')"' : '';
+      const tt = v.length > 28 ? `title="${esc(v)}"` : '';
+      tds += `<td ${ed} ${tt}>${content}</td>`;
+    });
+    return `<tr>${tds}</tr>`;
+  }).join('');
+
+  document.getElementById('tbl-badge').textContent = `${total} registros`;
+  document.getElementById('rec-count').textContent = `${DATA.length} registros`;
+  renderPager(total);
+}
+
+function badgeCls(v) {
+  const u = v.toUpperCase();
+  if (u.includes('ATENDID')) return 'badge b-green';
+  if (u.includes('AUSENT'))  return 'badge b-orange';
+  if (u.includes('PEND'))    return 'badge b-blue';
+  if (u.includes('CANCEL'))  return 'badge b-red';
+  return 'badge b-gray';
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── FILTROS ──
+function filtrar() {
+  const q  = (document.getElementById('q').value||'').toLowerCase();
+  const fe = document.getElementById('f-estado').value;
+  const ft = document.getElementById('f-tecnico').value;
+  const fr = document.getElementById('f-tramo').value;
+
+  FDATA = DATA.filter(r => {
+    if (q && !SEARCH_K.some(k => String(r[k]||'').toLowerCase().includes(q))) return false;
+    if (fe && r.Estado  !== fe) return false;
+    if (ft && r.Tecnico !== ft) return false;
+    if (fr && r.Tramo   !== fr) return false;
+    return true;
+  });
+
+  if (SORT_C !== null) {
+    const k = COLS[SORT_C].k;
+    FDATA.sort((a,b) => String(a[k]||'').localeCompare(String(b[k]||''),'es') * SORT_D);
+  }
+
+  PAGE = 1;
+  renderTabla();
+}
+
+function limpiar() {
+  document.getElementById('q').value = '';
+  document.getElementById('f-estado').value = '';
+  document.getElementById('f-tecnico').value = '';
+  document.getElementById('f-tramo').value = '';
+  filtrar();
+}
+
+function sortBy(i) {
+  SORT_D = (SORT_C===i) ? SORT_D*-1 : 1;
+  SORT_C = i;
+  document.querySelectorAll('[id^="si"]').forEach((el,j) => {
+    el.textContent = j===i ? (SORT_D===1?'↑':'↓') : '↕';
+    el.style.opacity = j===i ? '1' : '0.4';
+  });
+  filtrar();
+}
+
+function fillTecFilter() {
+  const sel = document.getElementById('f-tecnico');
+  const cur = sel.value;
+  const tecs = [...new Set(DATA.map(r=>r.Tecnico).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">— Técnico —</option>' + tecs.map(t=>`<option ${t===cur?'selected':''}>${esc(t)}</option>`).join('');
+}
+
+// ── EDICIÓN INLINE ──
+function editCell(td, id, key) {
+  if (td.querySelector('input')) return;
+  const old = td.innerText.trim();
+  const inp = document.createElement('input');
+  inp.className = 'cell-input';
+  inp.value = old;
+  td.innerHTML = ''; td.appendChild(inp); inp.focus(); inp.select();
+  const commit = async () => {
+    const val = inp.value.trim();
+    td.innerHTML = val;
+    if (val !== old) await guardarCelda(id, key, val);
+  };
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => {
+    if (e.key==='Enter') { e.preventDefault(); inp.blur(); }
+    if (e.key==='Escape') { td.innerHTML = esc(old); }
+  });
+}
+
+async function guardarCelda(id, key, val) {
+  const row = DATA.find(r => String(r.id)===String(id));
+  if (row) row[key] = val;
+  updateStats();
+  if (!CFG.url || !CFG.key || !id) { toast('💾 Guardado local', 'inf'); return; }
+  try {
+    await apiFetch(`${CFG.tbl}?id=eq.${id}`, {
+      method:'PATCH', body:JSON.stringify({[key]:val}), prefer:'return=minimal'
+    });
+    toast('✅ Guardado', 'ok');
+  } catch(e) { toast('❌ '+e.message, 'err'); }
+}
+
+// ── PAGINACIÓN ──
+function renderPager(total) {
+  const pages = Math.ceil(total/PG);
+  const s = (PAGE-1)*PG+1;
+  const e = Math.min(PAGE*PG, total);
+  document.getElementById('btn-prev').disabled = PAGE<=1;
+  document.getElementById('btn-next').disabled = PAGE>=pages;
+  document.getElementById('page-info').textContent = `${s}–${e} de ${total}`;
+  const range = pgRange(PAGE, pages);
+  document.getElementById('pg-nums').innerHTML = range.map(p =>
+    p==='…' ? '<span style="padding:4px 5px;color:#94a3b8">…</span>'
+            : `<button class="pg-btn ${p===PAGE?'active':''}" onclick="irPag(${p})">${p}</button>`
+  ).join('');
+}
+
+function pgRange(cur, tot) {
+  if (tot<=7) return Array.from({length:tot},(_,i)=>i+1);
+  const r=[1];
+  if (cur>3) r.push('…');
+  for (let i=Math.max(2,cur-1); i<=Math.min(tot-1,cur+1); i++) r.push(i);
+  if (cur<tot-2) r.push('…');
+  r.push(tot);
+  return r;
+}
+
+function irPag(p) { PAGE=p; renderTabla(); document.getElementById('table-area').scrollTop=0; }
+function pg(d) { const tot=Math.ceil(FDATA.length/PG); if(PAGE+d>=1&&PAGE+d<=tot){PAGE+=d;renderTabla();} }
+
+// ══════════════════════════════════════════════════════
+//  CARGA DE EXCEL
+//  onFileSelected() es llamado por el evento onchange del input nativo
+//  onDrop() maneja el arrastrar-y-soltar
+// ══════════════════════════════════════════════════════
+function onFileSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (!file.name.match(/\.(xlsx|xls)$/i)) {
+    toast('❌ Solo se aceptan archivos .xlsx o .xls', 'err'); return;
+  }
+  leerExcel(file);
+}
+
+function onDrop(ev) {
+  ev.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  const file = ev.dataTransfer.files[0];
+  if (!file) return;
+  if (!file.name.match(/\.(xlsx|xls)$/i)) {
+    toast('❌ Solo se aceptan archivos .xlsx o .xls', 'err'); return;
+  }
+  leerExcel(file);
+}
+
+// Todas las columnas del Excel original (para guardar y descargar completo)
+const ALL_COLS = [
+  'id_contrato','fecha_programacion','cod_pedido','Agencia','dni_cliente','Venta',
+  'nom_cliente','fec_programacion','idvisita','pp','Poligono','Tramo horario','tipo',
+  'horario','area_venta','telefono','telefono_alternativo','correo_electronico',
+  'nro_ruc cliente','razon_social cliente','valida_cod_pedido','latitud','longitud',
+  'coordenadas_direccion','ubigeo','cod_postal','direccion_cliente','torre',
+  'nro_departamento','tipo_vivienda','Departamento','Provincia','Distrito_1',
+  'Campaña','Paquete',"SVA`s",'CantidadMesh','InstalacionMesh','VelocidadContratada',
+  'comentario_programador','cto1','cto1_latitud','cto1_longitud','cto1_metraje',
+  'cto1_poste','cto1_piso','cto1_montante','cto2','cto2_latitud','cto2_longitud',
+  'cto2_metraje','cto2_poste','cto2_piso','cto2_montante','cto3','cto3_latitud',
+  'cto3_longitud','cto3_metraje','cto3_poste','cto3_piso','cto3_montante',
+  'tipificacion','Tipo_alta','Portabilidad','Numero_Telefonico','Formulario',
+  'Comentario','Comentario del validador','Estado de validacion','Tipo de validaciones',
+  'Status de Llamada','Programacion','Gestion Diaria','Tramo_1','Foto de fachada',
+  '¿Quien atiende?','Foto del Documento de identidad (TITULAR)',
+  'H_Progra','H_Inicio','H_Proceso','H_Cierre','CTO a usar','4ta CTO',
+  'Puerto Utilizado','Foto de CTO Cerrada','Foto de CTO abierta + potencia',
+  'Coincide_bot','Foto de la roseta abierta + potencia','Foto de Ubicacion de la ONT',
+  'Foto del serial de la ONT','S/N ONT, En prueba el autollenado por foto',
+  'Foto del Speedtest','Foto del acta','Foto del cliente con acta',
+  'UBI.CTO1','UBI.CTO2','UBI.CTO3','Estado_1','SubEstado','Motivo.SubEstado',
+  'Motivo.Estado','Verificacion_Pro',
+  '1. Evidencia de la cancelacion/reprogramacion',
+  '2. Evidencia de la cancelacion/reprogramacion',
+  'Detalle.Estado','Fecha de Programación','Fecha_Gestion','Tramo.Atencio',
+  'Partner','Cuadrilla','NEGOCIO',
+  'Codigo','Cliente','dni','Direccion','Distrito','Ref-1','Ref-2','Estado',
+  'Tecnico','Cel_Tecnico','Tramo','Observaciones','Reingreso','Conteo','Segmento',
+  'Telef_Alternativo','Atendido','Quantum','ONT','TIEMPO','BACK'
+];
+
+function leerExcel(file) {
+  loader('Leyendo archivo Excel...');
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const wb = XLSX.read(new Uint8Array(ev.target.result), { type:'array' });
+      if (!wb.SheetNames.includes('BASE_PERUFIBRA')) {
+        loader(); toast('❌ El archivo no tiene la hoja BASE_PERUFIBRA', 'err'); return;
+      }
+      const ws  = wb.Sheets['BASE_PERUFIBRA'];
+      const raw = XLSX.utils.sheet_to_json(ws, { defval:'' });
+
+      // PENDING guarda TODAS las columnas del original
+      PENDING = raw.map(row => {
+        const m = {};
+        // Guardar todas las columnas originales tal cual
+        ALL_COLS.forEach(col => {
+          let v = row[col];
+          if (v === null || v === undefined || (typeof v === 'number' && isNaN(v))) v = '';
+          m[col] = String(v).trim();
+        });
+        // También guardar cualquier columna extra que venga en el archivo
+        Object.keys(row).forEach(k => {
+          if (!(k in m)) {
+            let v = row[k];
+            if (v === null || v === undefined || (typeof v === 'number' && isNaN(v))) v = '';
+            m[k] = String(v).trim();
+          }
+        });
+        return m;
+      }).filter(r => r.Codigo || r.Cliente || r.nom_cliente || r.id_contrato);
+
+      loader();
+      mostrarPreview(PENDING, file.name);
+    } catch(err) {
+      loader();
+      toast('❌ Error al leer: ' + err.message, 'err');
+    }
+  };
+  reader.onerror = () => { loader(); toast('❌ No se pudo leer el archivo', 'err'); };
+  reader.readAsArrayBuffer(file);
+}
+
+function mostrarPreview(rows, nombre) {
+  document.getElementById('prev-title').textContent = nombre;
+  document.getElementById('prev-badge').textContent = rows.length + ' filas';
+  document.getElementById('prev-info').textContent  = 'Vista previa: primeros 10 de ' + rows.length + ' · Se guardarán TODAS las columnas del Excel';
+  document.getElementById('preview-box').style.display = 'block';
+  // Preview muestra solo las columnas de visualización
+  document.getElementById('prev-head').innerHTML =
+    '<tr>' + COLS.map(c => `<th>${c.l}</th>`).join('') + '</tr>';
+  document.getElementById('prev-body').innerHTML =
+    rows.slice(0,10).map(r =>
+      '<tr>' + COLS.map(c => `<td>${esc(r[c.k]||'')}</td>`).join('') + '</tr>'
+    ).join('');
+}
+
+async function importarSupabase() {
+  if (!PENDING.length) return;
+  if (!CFG.url || !CFG.key) { toast('⚠️ Configura Supabase primero', 'inf'); return; }
+  loader(`Importando ${PENDING.length} registros...`);
+  try {
+    // Deduplicar por cod_pedido o Codigo (lo que exista)
+    const existing = await apiFetch(`${CFG.tbl}?select=cod_pedido,Codigo&limit=10000`);
+    const existCod   = new Set((existing||[]).map(r=>String(r.cod_pedido||'')).filter(Boolean));
+    const existCodigo= new Set((existing||[]).map(r=>String(r.Codigo||'')).filter(Boolean));
+
+    const nuevos = PENDING.filter(r => {
+      if (r.cod_pedido && existCod.has(String(r.cod_pedido))) return false;
+      if (r.Codigo && existCodigo.has(String(r.Codigo))) return false;
+      return true;
     });
 
-    function checkConnectionStatus() {
-      const badge = document.getElementById('connStatus');
-      if (config.url && config.key) {
-        badge.textContent = 'En línea';
-        badge.classList.add('online');
-        document.getElementById('warningBanner').classList.add('hidden');
-      } else {
-        badge.textContent = 'Sin conexión';
-        badge.classList.remove('online');
-        if (rawData.length === 0) document.getElementById('warningBanner').classList.remove('hidden');
-      }
+    if (!nuevos.length) { toast('ℹ️ Sin registros nuevos (todos ya existen)', 'inf'); loader(); return; }
+
+    // Insertar en lotes de 100 (filas con muchas columnas)
+    for (let i=0; i<nuevos.length; i+=100) {
+      await apiFetch(CFG.tbl, { method:'POST', body:JSON.stringify(nuevos.slice(i,i+100)), prefer:'return=minimal' });
     }
+    toast(`✅ ${nuevos.length} importados (${PENDING.length-nuevos.length} duplicados omitidos)`, 'ok');
+    await cargarDatos();
+    PENDING = [];
+    document.getElementById('preview-box').style.display='none';
+    document.getElementById('file-input-real').value='';
+    show('gestion');
+  } catch(e) { toast('❌ '+e.message, 'err'); }
+  finally { loader(); }
+}
 
-    function showSection(name) {
-      document.getElementById('homeSection').classList.toggle('hidden', name !== 'home');
-      document.getElementById('tableSection').classList.toggle('hidden', name !== 'table');
-      document.getElementById('uploadSection').classList.toggle('hidden', name !== 'upload');
-      if (name === 'table') {
-        applyFilters();
-        renderTable();
-      }
-    }
+function importarLocal() {
+  if (!PENDING.length) return;
+  const setCod  = new Set(DATA.map(r=>String(r.cod_pedido||'')).filter(Boolean));
+  const setCodigo= new Set(DATA.map(r=>String(r.Codigo||'')).filter(Boolean));
+  const nuevos = PENDING.filter(r => {
+    if (r.cod_pedido && setCod.has(String(r.cod_pedido))) return false;
+    if (r.Codigo && setCodigo.has(String(r.Codigo))) return false;
+    return true;
+  });
+  DATA = [...DATA, ...nuevos];
+  filtrar(); updateStats(); fillTecFilter();
+  toast(`✅ ${nuevos.length} registros cargados localmente`, 'ok');
+  PENDING=[];
+  document.getElementById('preview-box').style.display='none';
+  document.getElementById('file-input-real').value='';
+  show('gestion');
+}
 
-    function toggleModal(id) {
-      const modal = document.getElementById(id);
-      modal.classList.toggle('active');
-      if (id === 'uploadModal') {
-        // Si abre modal, muestra sección upload
-        document.getElementById('uploadSection').classList.remove('hidden');
-        document.getElementById('homeSection').classList.add('hidden');
-        document.getElementById('tableSection').classList.add('hidden');
-        document.getElementById('previewContainer').classList.add('hidden');
-        document.getElementById('dropZone').classList.remove('hidden');
-      }
-    }
+// ── DESCARGAR EXCEL — con TODAS las columnas originales ──
+function downloadExcel() {
+  if (!DATA.length) { toast('⚠️ Sin datos para exportar', 'inf'); return; }
 
-    function showToast(msg, type = 'info') {
-      const toast = document.getElementById('toast');
-      toast.textContent = msg;
-      toast.className = `toast ${type} show`;
-      setTimeout(() => toast.classList.remove('show'), 3500);
-    }
+  // Obtener todas las keys presentes en los datos
+  const allKeys = ALL_COLS.filter(k => DATA.some(r => r[k] !== undefined && r[k] !== ''));
+  // Agregar cualquier key extra que no esté en ALL_COLS
+  const extraKeys = [...new Set(DATA.flatMap(r => Object.keys(r)))].filter(k => !allKeys.includes(k) && k !== 'id');
+  const headers = [...allKeys, ...extraKeys];
 
-    // ================= EXCEL UPLOAD =================
-    function setupDragDrop() {
-      const zone = document.getElementById('dropZone');
-      const input = document.getElementById('fileInput');
+  const wsData = [headers, ...DATA.map(r => headers.map(h => r[h] ?? ''))];
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = headers.map(() => ({ wch: 18 }));
+  XLSX.utils.book_append_sheet(wb, ws, 'BASE_PERUFIBRA');
+  XLSX.writeFile(wb, `BASE_PERUFIBRA_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('⬇️ Descargado con todas las columnas', 'ok');
+}
 
-      zone.addEventListener('click', () => input.click());
-      input.addEventListener('change', (e) => handleFile(e.target.files[0]));
+// ── STATS ──
+function updateStats() {
+  document.getElementById('s-total').textContent = DATA.length;
+  document.getElementById('s-atend').textContent = DATA.filter(r=>r.Estado==='ATENDIDO').length;
+  document.getElementById('s-ausen').textContent = DATA.filter(r=>r.Estado==='AUSENTE').length;
+  document.getElementById('s-pend').textContent  = DATA.filter(r=>!r.Estado||r.Estado==='PENDIENTE').length;
+  document.getElementById('s-tec').textContent   = new Set(DATA.map(r=>r.Tecnico).filter(Boolean)).size;
+  document.getElementById('rec-count').textContent = DATA.length + ' registros';
+}
 
-      zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag'); });
-      zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
-      zone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        zone.classList.remove('drag');
-        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-      });
-    }
+// ── UI HELPERS ──
+function updateConn(ok, txt) {
+  document.getElementById('dot').className = 'dot' + (ok?' on':'');
+  document.getElementById('conn-txt').textContent = txt;
+}
 
-    function handleFile(file) {
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const wb = XLSX.read(e.target.result, { type: 'binary' });
-          const sheetName = wb.SheetNames.find(s => s.trim().toUpperCase() === 'BASE_PERUFIBRA');
-          if (!sheetName) {
-            showToast('⚠️ No se encontró la hoja "BASE_PERUFIBRA"', 'error');
-            return;
-          }
+function loader(txt) {
+  const el = document.getElementById('loader');
+  if (txt) { document.getElementById('loader-txt').textContent=txt; el.classList.add('on'); }
+  else el.classList.remove('on');
+}
 
-          parsedExcelData = XLSX.utils.sheet_to_json(wb.Sheets[sheetName]);
-          if (!parsedExcelData.length) {
-            showToast('⚠️ La hoja está vacía o sin encabezados', 'error');
-            return;
-          }
-
-          // Mostrar vista previa
-          renderPreview(parsedExcelData.slice(0, 5));
-          document.getElementById('previewCount').textContent = `(${parsedExcelData.length} filas)`;
-          document.getElementById('dropZone').classList.add('hidden');
-          document.getElementById('previewContainer').classList.remove('hidden');
-          document.getElementById('uploadStatus').innerHTML = `<span style="color:var(--success)">✅ Archivo leído correctamente. Selecciona acción.</span>`;
-        } catch (err) {
-          showToast('❌ Error al leer: ' + err.message, 'error');
-        }
-      };
-      reader.readAsBinaryString(file);
-    }
-
-    function renderPreview(data) {
-      const wrap = document.getElementById('previewTableWrap');
-      if (!data.length) { wrap.innerHTML = ''; return; }
-      const headers = Object.keys(data[0]);
-      let html = '<table><thead><tr>';
-      headers.forEach(h => html += `<th>${h}</th>`);
-      html += '</tr></thead><tbody>';
-      data.forEach(row => {
-        html += '<tr>';
-        headers.forEach(h => html += `<td>${row[h] ?? ''}</td>`);
-        html += '</tr>';
-      });
-      html += '</tbody></table>';
-      wrap.innerHTML = html;
-    }
-
-    function closeUpload() {
-      toggleModal('uploadModal');
-      document.getElementById('fileInput').value = '';
-    }
-
-    // ================= ACCIONES DE DATOS =================
-    function loadLocally() {
-      try {
-        // Merge evitando duplicados por columna 'orden' o 'id'
-        const keyCol = Object.keys(parsedExcelData[0]).find(k => /orden|id|ticket/i.test(k)) || 'Orden';
-        const existingKeys = new Set(rawData.map(r => String(r[keyCol] || '').trim()));
-        const newRecords = parsedExcelData.filter(r => !existingKeys.has(String(r[keyCol] || '').trim()));
-        
-        rawData = [...rawData, ...newRecords];
-        localStorage.setItem('perufibra_data', JSON.stringify(rawData));
-        
-        updateStats();
-        populateFilters();
-        showToast(`💾 Cargados ${newRecords.length} nuevos registros localmente`, 'success');
-        showSection('table');
-        closeUpload();
-      } catch (err) {
-        showToast('❌ Error: ' + err.message, 'error');
-      }
-    }
-
-    async function importToSupabase() {
-      if (!config.url || !config.key) {
-        showToast('⚠️ Configura Supabase primero', 'error');
-        toggleModal('configModal');
-        return;
-      }
-      showToast('🔄 Enviando a Supabase...', 'info');
-      try {
-        const res = await fetch(`${config.url}/rest/v1/${config.table}`, {
-          method: 'POST',
-          headers: {
-            'apikey': config.key,
-            'Authorization': `Bearer ${config.key}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify(parsedExcelData)
-        });
-        if (!res.ok) throw new Error(await res.text());
-        
-        showToast('✅ Importación exitosa a Supabase', 'success');
-        rawData = [...rawData, ...parsedExcelData]; // Actualiza local
-        localStorage.setItem('perufibra_data', JSON.stringify(rawData));
-        updateStats();
-        populateFilters();
-        showSection('table');
-        closeUpload();
-      } catch (err) {
-        showToast('❌ Error Supabase: ' + err.message, 'error');
-      }
-    }
-
-    async function syncFromSupabase() {
-      if (!config.url || !config.key) { showToast('⚠️ Sin configuración Supabase', 'error'); return; }
-      showToast('🔄 Sincronizando...', 'info');
-      try {
-        const res = await fetch(`${config.url}/rest/v1/${config.table}?select=*`, {
-          headers: { 'apikey': config.key, 'Authorization': `Bearer ${config.key}` }
-        });
-        if (!res.ok) throw new Error('Fallo en red');
-        rawData = await res.json();
-        localStorage.setItem('perufibra_data', JSON.stringify(rawData));
-        updateStats();
-        populateFilters();
-        applyFilters();
-        renderTable();
-        showToast('✅ Sincronización completada', 'success');
-      } catch (err) {
-        showToast('❌ Error de sincronización', 'error');
-      }
-    }
-
-    function downloadExcel() {
-      if (!rawData.length) { showToast('⚠️ No hay datos para exportar', 'error'); return; }
-      const ws = XLSX.utils.json_to_sheet(rawData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'BASE_PERUFIBRA');
-      XLSX.writeFile(wb, 'BASE_PERUFIBRA.xlsx');
-      showToast('⬇️ Descarga iniciada', 'success');
-    }
-
-    // ================= UI & FILTROS =================
-    function updateStats() {
-      const total = rawData.length;
-      const getField = (r, k) => String(r[k] || r[k.toLowerCase()] || r[k.toUpperCase()] || '').trim().toUpperCase();
-      const atendidos = rawData.filter(r => getField(r, 'estado') === 'ATENDIDO').length;
-      const ausentes = rawData.filter(r => getField(r, 'estado') === 'AUSENTE').length;
-      const pendientes = rawData.filter(r => getField(r, 'estado') === 'PENDIENTE').length;
-      const tecnicos = new Set(rawData.map(r => r['Técnico'] || r['tecnico'] || r['TECNICO'] || '')).size;
-
-      document.getElementById('statTotal').textContent = total;
-      document.getElementById('statAtendidos').textContent = atendidos;
-      document.getElementById('statAusentes').textContent = ausentes;
-      document.getElementById('statPendientes').textContent = pendientes;
-      document.getElementById('statTecnicos').textContent = tecnicos;
-    }
-
-    function populateFilters() {
-      const techSelect = document.getElementById('filterTecnico');
-      const current = techSelect.value;
-      const techs = [...new Set(rawData.map(r => r['Técnico'] || r['tecnico'] || r['TECNICO'] || '')).values()].filter(Boolean).sort();
-      techSelect.innerHTML = '<option value="">— Técnico —</option>' + techs.map(t => `<option value="${t}">${t}</option>`).join('');
-      techSelect.value = current;
-    }
-
-    function applyFilters() {
-      const search = document.getElementById('searchInput').value.toLowerCase();
-      const estado = document.getElementById('filterEstado').value;
-      const tecnico = document.getElementById('filterTecnico').value;
-      const tramo = document.getElementById('filterTramo').value;
-
-      filteredData = rawData.filter(row => {
-        const rowStr = JSON.stringify(row).toLowerCase();
-        const matchSearch = !search || rowStr.includes(search);
-        const matchEstado = !estado || String(row['Estado'] || row['estado'] || '').trim().toUpperCase() === estado;
-        const matchTecnico = !tecnico || String(row['Técnico'] || row['tecnico'] || row['TECNICO'] || '').trim() === tecnico;
-        const matchTramo = !tramo || String(row['Tramo'] || row['tramo'] || row['TRAMO'] || '').trim() === tramo;
-        return matchSearch && matchEstado && matchTecnico && matchTramo;
-      });
-
-      currentPage = 1;
-      document.getElementById('tableCount').textContent = `(${filteredData.length} registros)`;
-      renderTable();
-    }
-
-    function clearFilters() {
-      document.getElementById('searchInput').value = '';
-      document.getElementById('filterEstado').value = '';
-      document.getElementById('filterTecnico').value = '';
-      document.getElementById('filterTramo').value = '';
-      applyFilters();
-    }
-
-    function renderTable() {
-      const tbody = document.getElementById('tableBody');
-      const thead = document.getElementById('tableHead');
-      tbody.innerHTML = ''; thead.innerHTML = '';
-
-      if (!filteredData.length) {
-        tbody.innerHTML = '<tr><td colspan="100" style="text-align:center; padding:20px; color:var(--muted);">📂 Sin datos cargados</td></tr>';
-        document.getElementById('pageInfo').textContent = 'Página 0 de 0';
-        return;
-      }
-
-      const headers = Object.keys(filteredData[0]);
-      headers.forEach(h => { const th = document.createElement('th'); th.textContent = h; thead.appendChild(th); });
-
-      const start = (currentPage - 1) * rowsPerPage;
-      const end = start + rowsPerPage;
-      const pageData = filteredData.slice(start, end);
-
-      pageData.forEach(row => {
-        const tr = document.createElement('tr');
-        headers.forEach(h => { const td = document.createElement('td'); td.textContent = row[h] ?? ''; tr.appendChild(td); });
-        tbody.appendChild(tr);
-      });
-
-      const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-      document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages || 1}`;
-      document.getElementById('prevBtn').disabled = currentPage === 1;
-      document.getElementById('nextBtn').disabled = currentPage === totalPages || totalPages === 0;
-    }
-
-    function changePage(delta) {
-      currentPage += delta;
-      renderTable();
-    }
-
-    // ================= CONFIGURACIÓN =================
-    function loadConfigToInputs() {
-      if (config.url) document.getElementById('cfgUrl').value = config.url;
-      if (config.key) document.getElementById('cfgKey').value = config.key;
-      if (config.table) document.getElementById('cfgTable').value = config.table;
-    }
-
-    function saveConfig() {
-      config.url = document.getElementById('cfgUrl').value.trim().replace(/\/$/, '');
-      config.key = document.getElementById('cfgKey').value.trim();
-      config.table = document.getElementById('cfgTable').value.trim() || 'BASE_PERUFIBRA';
-      localStorage.setItem('tecsycom_cfg', JSON.stringify(config));
-      loadConfigToInputs();
-      checkConnectionStatus();
-      document.getElementById('configStatus').innerHTML = '<span style="color:var(--success)">✅ Configuración guardada.</span>';
-      setTimeout(() => { toggleModal('configModal'); document.getElementById('configStatus').innerHTML = ''; }, 1200);
-    }
-
-    function loadLocalData() {
-      const saved = localStorage.getItem('perufibra_data');
-      if (saved) {
-        try { rawData = JSON.parse(saved); } catch {}
-      }
-      updateStats();
-      populateFilters();
-    }
-  </script>
+function toast(msg, type='inf') {
+  const el = document.createElement('div');
+  el.className = 't ' + type;
+  el.textContent = msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+</script>
 </body>
 </html>
