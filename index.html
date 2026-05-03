@@ -1343,7 +1343,8 @@ function onDrop(ev) {
   leerExcel(file);
 }
 
-// Todas las columnas del Excel original (para guardar y descargar completo)
+// Todas las columnas del Excel original (exactas, en orden)
+// Nota: el Excel tiene 'Atendido' duplicado — la 2da se guarda como 'Atendido2'
 const ALL_COLS = [
   'id_contrato','fecha_programacion','cod_pedido','Agencia','dni_cliente','Venta',
   'nom_cliente','fec_programacion','idvisita','pp','Poligono','Tramo horario','tipo',
@@ -1373,8 +1374,14 @@ const ALL_COLS = [
   'Partner','Cuadrilla','NEGOCIO',
   'Codigo','Cliente','dni','Direccion','Distrito','Ref-1','Ref-2','Estado',
   'Tecnico','Cel_Tecnico','Tramo','Observaciones','Reingreso','Conteo','Segmento',
-  'Telef_Alternativo','Atendido','Quantum','ONT','TIEMPO','BACK'
+  'Telef_Alternativo','Atendido','Atendido2','Quantum','ONT','TIEMPO','BACK'
 ];
+
+// Mapa de nombres que XLSX.js genera para columnas duplicadas → nombre en BD
+const COL_RENAME = {
+  'Atendido_1': 'Atendido2',   // XLSX.js renombra 2da col duplicada así
+  'Atendido.1': 'Atendido2',   // pandas lo renombra así (por si acaso)
+};
 
 function leerExcel(file) {
   loader('Leyendo archivo Excel...');
@@ -1389,21 +1396,20 @@ function leerExcel(file) {
       const raw = XLSX.utils.sheet_to_json(ws, { defval:'' });
 
       // PENDING guarda TODAS las columnas del original
+      // Primero normalizar nombres de columnas del row (renombrar duplicadas)
       PENDING = raw.map(row => {
-        const m = {};
-        // Guardar todas las columnas originales tal cual
-        ALL_COLS.forEach(col => {
-          let v = row[col];
-          if (v === null || v === undefined || (typeof v === 'number' && isNaN(v))) v = '';
-          m[col] = String(v).trim();
-        });
-        // También guardar cualquier columna extra que venga en el archivo
+        // Renombrar columnas que XLSX.js autogenera por duplicados
+        const normalRow = {};
         Object.keys(row).forEach(k => {
-          if (!(k in m)) {
-            let v = row[k];
-            if (v === null || v === undefined || (typeof v === 'number' && isNaN(v))) v = '';
-            m[k] = String(v).trim();
-          }
+          const destKey = COL_RENAME[k] || k;
+          let v = row[k];
+          if (v === null || v === undefined || (typeof v === 'number' && isNaN(v))) v = '';
+          normalRow[destKey] = String(v).trim();
+        });
+        // Construir objeto final con todas las columnas esperadas
+        const m = {};
+        ALL_COLS.forEach(col => {
+          m[col] = normalRow[col] ?? '';
         });
         return m;
       }).filter(r => r.Codigo || r.Cliente || r.nom_cliente || r.id_contrato);
