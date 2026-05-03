@@ -795,7 +795,8 @@ label[for="file-input-real"].drag-over {
         <option value="">— Tramo —</option>
         <option>08AM-12PM</option><option>12PM-16PM</option><option>16PM-20PM</option>
       </select>
-      <button class="btn btn-white btn-sm" onclick="limpiar()">✕ Limpiar</button>
+      <button class="btn btn-white btn-sm" onclick="limpiarFiltros()" title="Limpiar filtros de búsqueda">✕ Filtros</button>
+      <button class="btn btn-sm" onclick="confirmarLimpiarTodo()" style="background:#fff0f0;color:#dc2626;border:1px solid #fca5a5;" title="Borrar todos los datos de la tabla">🗑️ Limpiar Todo</button>
     </div>
 
     <div class="table-area" id="table-area">
@@ -1232,12 +1233,60 @@ function filtrar() {
   renderTabla();
 }
 
-function limpiar() {
+function limpiarFiltros() {
   document.getElementById('q').value = '';
   document.getElementById('f-estado').value = '';
   document.getElementById('f-tecnico').value = '';
   document.getElementById('f-tramo').value = '';
   filtrar();
+}
+
+function confirmarLimpiarTodo() {
+  if (!DATA.length) { toast('ℹ️ La tabla ya está vacía', 'inf'); return; }
+  if (!confirm(`¿Estás seguro de que deseas borrar todos los datos de la tabla?\n\nSe eliminarán ${DATA.length} registros de la vista.\nEsta acción NO borra datos en Supabase.`)) return;
+  limpiarTodo();
+}
+
+function limpiarTodo() {
+  // Limpiar datos
+  DATA    = [];
+  FDATA   = [];
+  PENDING = [];
+
+  // Limpiar filtros
+  document.getElementById('q').value = '';
+  document.getElementById('f-estado').value = '';
+  document.getElementById('f-tecnico').value = '';
+  document.getElementById('f-tramo').value = '';
+  document.getElementById('f-tecnico').innerHTML = '<option value="">— Técnico —</option>';
+
+  // Limpiar tabla
+  document.getElementById('tbody').innerHTML = '';
+  document.getElementById('tbl').style.display = 'none';
+  document.getElementById('empty-state').style.display = 'block';
+  document.getElementById('tbl-badge').textContent = '0 registros';
+  document.getElementById('rec-count').textContent = '0 registros';
+
+  // Limpiar paginación
+  document.getElementById('pg-nums').innerHTML = '';
+  document.getElementById('page-info').textContent = '—';
+  document.getElementById('btn-prev').disabled = true;
+  document.getElementById('btn-next').disabled = true;
+  PAGE = 1;
+
+  // Limpiar estadísticas del dashboard
+  document.getElementById('s-total').textContent = '0';
+  document.getElementById('s-atend').textContent = '0';
+  document.getElementById('s-ausen').textContent = '0';
+  document.getElementById('s-pend').textContent  = '0';
+  document.getElementById('s-tec').textContent   = '0';
+
+  // Limpiar preview de carga si está visible
+  document.getElementById('preview-box').style.display = 'none';
+  const fi = document.getElementById('file-input-real');
+  if (fi) fi.value = '';
+
+  toast('🗑️ Tabla limpiada correctamente', 'ok');
 }
 
 function sortBy(i) {
