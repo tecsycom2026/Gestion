@@ -1244,50 +1244,69 @@ function limpiarFiltros() {
 
 function confirmarLimpiarTodo() {
   if (!DATA.length) { toast('ℹ️ La tabla ya está vacía', 'inf'); return; }
-  if (!confirm(`¿Estás seguro de que deseas borrar todos los datos de la tabla?\n\nSe eliminarán ${DATA.length} registros de la vista.\nEsta acción NO borra datos en Supabase.`)) return;
+
+  const tieneSupabase = CFG.url && CFG.key;
+  const msg = tieneSupabase
+    ? `⚠️ ATENCIÓN — Esta acción es irreversible.\n\nSe borrarán los ${DATA.length} registros de la pantalla Y también de Supabase.\n\nAl refrescar la página la tabla quedará vacía.\n\n¿Confirmas el borrado total?`
+    : `Se limpiarán los ${DATA.length} registros de la vista local.\n\n¿Confirmas?`;
+
+  if (!confirm(msg)) return;
   limpiarTodo();
 }
 
-function limpiarTodo() {
-  // Limpiar datos
+async function limpiarTodo() {
+  // 1. Borrar en Supabase si está conectado
+  if (CFG.url && CFG.key) {
+    loader('Borrando registros en Supabase...');
+    try {
+      // DELETE sin filtro borra todos los registros de la tabla
+      await apiFetch(`${CFG.tbl}?id=gt.0`, {
+        method: 'DELETE',
+        prefer: 'return=minimal',
+      });
+      toast('🗑️ Registros eliminados de Supabase', 'ok');
+    } catch(e) {
+      loader();
+      toast('❌ Error al borrar en Supabase: ' + e.message, 'err');
+      return;
+    }
+    loader();
+  }
+
+  // 2. Limpiar todo en memoria y UI
   DATA    = [];
   FDATA   = [];
   PENDING = [];
 
-  // Limpiar filtros
   document.getElementById('q').value = '';
   document.getElementById('f-estado').value = '';
   document.getElementById('f-tecnico').value = '';
   document.getElementById('f-tramo').value = '';
   document.getElementById('f-tecnico').innerHTML = '<option value="">— Técnico —</option>';
 
-  // Limpiar tabla
   document.getElementById('tbody').innerHTML = '';
   document.getElementById('tbl').style.display = 'none';
   document.getElementById('empty-state').style.display = 'block';
   document.getElementById('tbl-badge').textContent = '0 registros';
   document.getElementById('rec-count').textContent = '0 registros';
 
-  // Limpiar paginación
   document.getElementById('pg-nums').innerHTML = '';
   document.getElementById('page-info').textContent = '—';
   document.getElementById('btn-prev').disabled = true;
   document.getElementById('btn-next').disabled = true;
   PAGE = 1;
 
-  // Limpiar estadísticas del dashboard
   document.getElementById('s-total').textContent = '0';
   document.getElementById('s-atend').textContent = '0';
   document.getElementById('s-ausen').textContent = '0';
   document.getElementById('s-pend').textContent  = '0';
   document.getElementById('s-tec').textContent   = '0';
 
-  // Limpiar preview de carga si está visible
   document.getElementById('preview-box').style.display = 'none';
   const fi = document.getElementById('file-input-real');
   if (fi) fi.value = '';
 
-  toast('🗑️ Tabla limpiada correctamente', 'ok');
+  toast('✅ Todo limpiado. La tabla está vacía.', 'ok');
 }
 
 function sortBy(i) {
