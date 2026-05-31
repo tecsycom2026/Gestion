@@ -435,21 +435,13 @@ tbody tr:nth-child(even):hover{background:rgba(59,130,246,0.06);}
 /* ═══ UPLOAD ═══ */
 #view-upload{padding:32px 28px;max-width:820px;margin:0 auto;}
 
-#file-input-real{position:absolute;width:0;height:0;overflow:hidden;opacity:0;}
+#file-input-real{position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;}
 
-label[for="file-input-real"] {
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  border:2px dashed var(--border2);
-  border-radius:12px;padding:48px 32px;
-  background:var(--surface);
-  cursor:pointer;transition:all 0.2s;text-align:center;
-  margin-bottom:20px;user-select:none;
-}
-label[for="file-input-real"]:hover,
-label[for="file-input-real"].drag-over{
-  background:rgba(59,130,246,0.05);
-  border-color:var(--blue);
-  box-shadow:0 0 0 3px var(--blue-glow);
+#drop-zone:hover,
+#drop-zone.drag-over{
+  background:rgba(59,130,246,0.05) !important;
+  border-color:var(--blue) !important;
+  box-shadow:0 0 0 3px var(--blue-glow) !important;
 }
 
 .upload-icon{font-size:48px;margin-bottom:14px;opacity:0.7;}
@@ -805,22 +797,23 @@ label[for="file-input-real"].drag-over{
   <div id="view-upload" class="view">
 
     <input type="file" id="file-input-real" accept=".csv,.txt"
-           onchange="onFileSelected(this)"/>
+           onchange="onFileSelected(this)" style="display:none;"/>
 
-    <label for="file-input-real"
-           id="drop-zone"
-           ondragover="event.preventDefault();this.classList.add('drag-over')"
-           ondragleave="this.classList.remove('drag-over')"
-           ondrop="onDrop(event)">
+    <div id="drop-zone"
+         style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border2);border-radius:12px;padding:48px 32px;background:var(--surface);cursor:pointer;transition:all 0.2s;text-align:center;margin-bottom:20px;user-select:none;"
+         onclick="document.getElementById('file-input-real').click()"
+         ondragover="event.preventDefault();this.classList.add('drag-over')"
+         ondragleave="this.classList.remove('drag-over')"
+         ondrop="onDrop(event)">
       <div class="upload-icon">📄</div>
       <div class="upload-title">Selecciona tu archivo CSV</div>
       <div class="upload-sub">
-        Arrastra aquí o haz clic para buscar.<br/>
+        Arrastra aquí o haz clic en cualquier parte.<br/>
         Se detectan automáticamente los encabezados y el separador.
       </div>
-      <div class="upload-cta">📂 &nbsp;Buscar archivo CSV...</div>
-      <div class="upload-hint">Formato: .csv · Separador: ; (punto y coma)</div>
-    </label>
+      <button class="btn btn-blue" onclick="event.stopPropagation();document.getElementById('file-input-real').click()" style="font-size:14px;padding:12px 28px;">📂 &nbsp;Buscar archivo CSV...</button>
+      <div class="upload-hint" style="margin-top:12px;font-size:11px;color:var(--text3);font-family:var(--mono);">Formato: .csv · Separador: ; (punto y coma)</div>
+    </div>
 
     <!-- Panel de detección de encabezados -->
     <div id="header-panel" class="header-panel" style="display:none;">
