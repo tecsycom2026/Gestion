@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TECSYCOM – Gestión PERUFIBRA</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+:root {
+  --bg:#0d1117;
+  --surface:#161b22;
+  --surface2:#1f2937;
+  --border:#30363d;
+  --border2:#374151;
+  --blue:#3b82f6;
+  --blue-dim:#1d4ed8;
+  --blue-glow:rgba(59,130,246,0.15);
+  --green:#22c55e;
+  --green-dim:#166534;
+  --amber:#f59e0b;
+  --red:#ef4444;
+  --red-dim:#991b1b;
+  --purple:#a855f7;
+  --teal:#14b8a6;
+  --text:#e2e8f0;
+  --text2:#94a3b8;
+  --text3:#64748b;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Syne',sans-serif;
+}
+
+body {
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  font-size:14px;
+  overflow-x:hidden;
+}
+
+/* ═══ TOPBAR ═══ */
+#topbar {
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  height:56px;
+  display:flex;
+  align-items:center;
+  padding:0 20px;
+  gap:14px;
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+
+.brand {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-shrink:0;
+}
+
+.brand-mark {
+  width:34px;height:34px;
+  background:var(--blue);
+  border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:16px;color:#fff;
+  font-family:var(--sans);
+  box-shadow:0 0 12px rgba(59,130,246,0.4);
+}
+
+.brand-name {
+  font-size:15px;font-weight:800;color:#fff;
+  letter-spacing:2px;
+  font-family:var(--sans);
+}
+
+.brand-sub {
+  font-size:9px;color:var(--text3);
+  letter-spacing:3px;font-weight:600;
+  font-family:var(--mono);
+  margin-top:1px;
+}
+
+nav {
+  display:flex;gap:2px;margin-left:12px;
+}
+
+.nav-btn {
+  padding:6px 14px;
+  border-radius:5px;border:none;
+  background:transparent;
+  color:var(--text2);
+  font-size:12px;font-weight:600;
+  cursor:pointer;
+  transition:all 0.15s;
+  font-family:var(--sans);
+  letter-spacing:0.3px;
+  white-space:nowrap;
+}
+.nav-btn:hover{background:var(--surface2);color:var(--text);}
+.nav-btn.active{background:var(--blue-glow);color:var(--blue);border:1px solid rgba(59,130,246,0.3);}
+
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+
+.conn-badge {
+  display:flex;align-items:center;gap:6px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:4px 12px;
+  font-size:11px;color:var(--text2);
+  font-family:var(--mono);
+}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--text3);}
+.dot.on{background:var(--green);box-shadow:0 0 6px var(--green);}
+
+#rec-count {
+  background:var(--blue-glow);
+  color:var(--blue);
+  border:1px solid rgba(59,130,246,0.3);
+  border-radius:20px;
+  padding:4px 12px;
+  font-size:11px;font-weight:600;
+  font-family:var(--mono);
+}
+
+.btn-cfg {
+  padding:6px 12px;border-radius:5px;
+  border:1px solid var(--border);
+  background:var(--surface2);
+  color:var(--text2);font-size:11px;
+  cursor:pointer;font-weight:600;
+  font-family:var(--sans);
+  transition:all 0.15s;
+}
+.btn-cfg:hover{border-color:var(--border2);color:var(--text);}
+
+/* ═══ VIEWS ═══ */
+#main{position:relative;}
+.view{display:none;}
+.view.active{display:block;}
+
+/* ═══ BUTTONS ═══ */
+.btn {
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 16px;
+  border-radius:6px;border:none;
+  font-size:12px;font-weight:600;
+  cursor:pointer;
+  transition:all 0.15s;
+  text-decoration:none;white-space:nowrap;
+  font-family:var(--sans);
+  letter-spacing:0.3px;
+}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-blue:hover{background:#2563eb;box-shadow:0 0 12px rgba(59,130,246,0.3);}
+.btn-green{background:var(--green-dim);color:#fff;}
+.btn-green:hover{background:#15803d;}
+.btn-white{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn-white:hover{background:var(--surface);border-color:var(--border2);}
+.btn-red{background:var(--red-dim);color:#fff;}
+.btn-red:hover{background:#7f1d1d;}
+.btn-sm{padding:5px 11px;font-size:11px;}
+
+/* ═══ DASHBOARD ═══ */
+#view-menu{padding:28px;max-width:1100px;margin:0 auto;}
+
+.page-header{margin-bottom:28px;}
+.page-header h1{
+  font-size:24px;font-weight:800;color:#fff;
+  letter-spacing:-0.5px;
+}
+.page-header p{color:var(--text2);margin-top:4px;font-size:13px;}
+
+.warn-bar {
+  background:rgba(245,158,11,0.1);
+  border:1px solid rgba(245,158,11,0.3);
+  border-radius:8px;
+  padding:12px 16px;margin-bottom:24px;
+  display:flex;align-items:center;gap:10px;
+  font-size:12px;color:var(--amber);
+}
+.warn-bar.hidden{display:none;}
+
+/* Stats */
+.stats-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:12px;margin-bottom:28px;
+}
+
+.stat-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:18px 16px;
+  text-align:center;
+  transition:border-color 0.2s;
+}
+.stat-card:hover{border-color:var(--border2);}
+
+.stat-val{
+  font-size:32px;font-weight:800;
+  line-height:1;color:var(--blue);
+  font-family:var(--mono);
+}
+.stat-val.green{color:var(--green);}
+.stat-val.amber{color:var(--amber);}
+.stat-val.purple{color:var(--purple);}
+
+.stat-label{
+  font-size:10px;color:var(--text3);
+  margin-top:6px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  font-family:var(--sans);
+}
+
+/* Section */
+.section-title {
+  font-size:10px;font-weight:700;
+  color:var(--text3);letter-spacing:3px;
+  text-transform:uppercase;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--mono);
+}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* Cards */
+.cards-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:12px;margin-bottom:28px;
+}
+
+.card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:18px 16px;
+  cursor:pointer;
+  transition:all 0.18s;
+  display:flex;flex-direction:column;gap:8px;
+}
+.card:hover{
+  border-color:rgba(59,130,246,0.5);
+  background:var(--surface2);
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(0,0,0,0.3);
+}
+.card-icon{font-size:24px;}
+.card-title{font-size:13px;font-weight:700;color:#fff;}
+.card-desc{font-size:11px;color:var(--text2);line-height:1.5;}
+.card.blue{border-top:2px solid var(--blue);}
+.card.green{border-top:2px solid var(--green);}
+.card.amber{border-top:2px solid var(--amber);}
+.card.gray{border-top:2px solid var(--border2);cursor:default;}
+.card.gray:hover{transform:none;box-shadow:none;border-color:var(--border2);background:var(--surface);}
+
+/* ═══ GESTIÓN ═══ */
+#view-gestion{
+  display:flex;flex-direction:column;
+  height:calc(100vh - 56px);
+}
+
+.view-header {
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:10px 20px;
+  display:flex;align-items:center;gap:10px;
+  flex-shrink:0;
+}
+.view-header h2{font-size:14px;font-weight:700;color:#fff;}
+
+.badge-count{
+  background:var(--blue-glow);
+  color:var(--blue);
+  border:1px solid rgba(59,130,246,0.3);
+  border-radius:20px;
+  padding:2px 10px;
+  font-size:10px;font-weight:700;
+  font-family:var(--mono);
+}
+
+.toolbar {
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:8px 16px;
+  display:flex;flex-wrap:wrap;gap:7px;align-items:center;
+  flex-shrink:0;
+}
+
+.search-box{position:relative;flex:1;min-width:200px;max-width:320px;}
+.search-box input{
+  width:100%;
+  padding:6px 10px 6px 30px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  font-size:12px;
+  background:var(--surface2);
+  color:var(--text);
+  outline:none;
+  font-family:var(--sans);
+}
+.search-box input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow);}
+.search-box input::placeholder{color:var(--text3);}
+.search-ico{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none;}
+
+select.filter {
+  padding:6px 10px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  font-size:11px;
+  background:var(--surface2);
+  color:var(--text);
+  outline:none;cursor:pointer;
+  font-family:var(--sans);
+}
+select.filter:focus{border-color:var(--blue);}
+
+/* Table */
+.table-area{flex:1;overflow:auto;background:var(--bg);}
+
+table{border-collapse:collapse;width:max-content;min-width:100%;font-size:11px;}
+thead{position:sticky;top:0;z-index:5;}
+
+th {
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  border-right:1px solid var(--border);
+  padding:8px 12px;
+  text-align:left;
+  font-size:10px;font-weight:700;
+  color:var(--text2);
+  white-space:nowrap;
+  cursor:pointer;user-select:none;
+  letter-spacing:0.5px;text-transform:uppercase;
+  font-family:var(--mono);
+}
+th:hover{background:var(--surface2);color:var(--blue);}
+th.sorted-asc::after{content:' ↑';color:var(--blue);}
+th.sorted-desc::after{content:' ↓';color:var(--blue);}
+
+/* Column group header */
+.col-group-hdr {
+  background:var(--blue-dim);
+  color:rgba(255,255,255,0.9);
+  text-align:center;
+  font-size:9px;font-weight:700;
+  letter-spacing:3px;padding:5px;
+  border-right:1px solid rgba(255,255,255,0.1);
+  text-transform:uppercase;
+  font-family:var(--mono);
+}
+
+td {
+  padding:7px 12px;
+  border-bottom:1px solid rgba(48,54,61,0.6);
+  border-right:1px solid rgba(48,54,61,0.4);
+  color:var(--text2);
+  white-space:nowrap;
+  max-width:220px;overflow:hidden;text-overflow:ellipsis;
+  vertical-align:middle;
+  font-family:var(--mono);
+  font-size:11px;
+}
+td.client-col{color:var(--text);font-weight:600;font-family:var(--sans);}
+
+tbody tr:hover{background:rgba(59,130,246,0.04);}
+tbody tr:nth-child(even){background:rgba(255,255,255,0.012);}
+tbody tr:nth-child(even):hover{background:rgba(59,130,246,0.06);}
+
+.rn{color:var(--text3);font-size:10px;text-align:center;width:32px;}
+
+/* Badges */
+.badge{
+  display:inline-block;
+  padding:2px 8px;border-radius:4px;
+  font-size:9px;font-weight:700;
+  letter-spacing:0.5px;white-space:nowrap;
+  font-family:var(--mono);text-transform:uppercase;
+}
+.b-green{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+.b-amber{background:rgba(245,158,11,0.15);color:var(--amber);border:1px solid rgba(245,158,11,0.3);}
+.b-blue{background:var(--blue-glow);color:var(--blue);border:1px solid rgba(59,130,246,0.3);}
+.b-red{background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3);}
+.b-gray{background:var(--surface2);color:var(--text3);border:1px solid var(--border);}
+.b-purple{background:rgba(168,85,247,0.15);color:var(--purple);border:1px solid rgba(168,85,247,0.3);}
+
+/* Editable */
+.editable{cursor:text;}
+.editable:hover{background:rgba(245,158,11,0.05) !important;}
+.cell-input{
+  border:1px solid var(--blue);
+  border-radius:3px;
+  font-size:11px;padding:2px 6px;
+  width:100%;min-width:80px;
+  background:var(--surface);
+  color:var(--text);outline:none;
+  font-family:var(--mono);
+}
+
+/* Pagination */
+.pager {
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  padding:8px 16px;
+  display:flex;align-items:center;gap:7px;
+  flex-shrink:0;font-size:11px;color:var(--text2);
+  font-family:var(--mono);
+}
+.pg-btn{
+  padding:4px 9px;
+  border:1px solid var(--border);
+  border-radius:4px;
+  background:var(--surface2);
+  font-size:11px;color:var(--text2);
+  cursor:pointer;font-family:var(--mono);
+  transition:all 0.1s;
+}
+.pg-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue);}
+.pg-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.pg-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+#page-info{margin-left:auto;font-size:10px;color:var(--text3);}
+
+/* Empty */
+.empty{text-align:center;padding:80px 24px;color:var(--text3);}
+.empty-icon{font-size:48px;margin-bottom:14px;opacity:0.5;}
+.empty-title{font-size:16px;font-weight:700;color:var(--text2);margin-bottom:8px;}
+.empty-desc{font-size:12px;margin-bottom:20px;}
+
+/* ═══ UPLOAD ═══ */
+#view-upload{padding:32px 28px;max-width:820px;margin:0 auto;}
+
+#file-input-real{position:absolute;width:0;height:0;overflow:hidden;opacity:0;}
+
+label[for="file-input-real"] {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:2px dashed var(--border2);
+  border-radius:12px;padding:48px 32px;
+  background:var(--surface);
+  cursor:pointer;transition:all 0.2s;text-align:center;
+  margin-bottom:20px;user-select:none;
+}
+label[for="file-input-real"]:hover,
+label[for="file-input-real"].drag-over{
+  background:rgba(59,130,246,0.05);
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px var(--blue-glow);
+}
+
+.upload-icon{font-size:48px;margin-bottom:14px;opacity:0.7;}
+.upload-title{font-size:18px;font-weight:800;color:#fff;margin-bottom:6px;}
+.upload-sub{font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.6;}
+.upload-cta{
+  background:var(--blue);color:#fff;
+  border-radius:7px;padding:11px 28px;
+  font-size:13px;font-weight:700;
+  display:inline-flex;align-items:center;gap:8px;
+  pointer-events:none;
+  box-shadow:0 0 20px rgba(59,130,246,0.3);
+  font-family:var(--sans);
+}
+.upload-hint{margin-top:12px;font-size:11px;color:var(--text3);font-family:var(--mono);}
+
+/* Header detection panel */
+.header-panel {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  margin-bottom:16px;
+  overflow:hidden;
+}
+.header-panel-hdr {
+  background:var(--surface2);
+  border-bottom:1px solid var(--border);
+  padding:10px 16px;
+  display:flex;align-items:center;gap:10px;
+  font-size:12px;font-weight:700;color:var(--text);
+}
+.header-panel-body{padding:14px 16px;}
+.col-map-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:8px;
+}
+.col-map-item {
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:6px;padding:7px 10px;
+  font-size:11px;
+}
+.col-map-item.mapped{border-color:rgba(34,197,94,0.3);}
+.col-map-item.missing{border-color:rgba(245,158,11,0.3);}
+.col-map-vis{
+  min-width:110px;font-weight:700;
+  color:var(--text);font-family:var(--sans);
+}
+.col-map-arrow{color:var(--text3);}
+.col-map-src{color:var(--text2);font-family:var(--mono);font-size:10px;flex:1;}
+.col-map-src.missing{color:var(--amber);}
+.col-map-src.ok{color:var(--green);}
+.dot-sm{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.dot-ok{background:var(--green);}
+.dot-miss{background:var(--amber);}
+
+/* Preview */
+.preview-box {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;
+}
+.preview-header {
+  background:var(--surface2);
+  border-bottom:1px solid var(--border);
+  padding:10px 16px;
+  display:flex;align-items:center;gap:10px;
+}
+.preview-header strong{font-size:13px;font-weight:700;color:#fff;}
+.preview-scroll{overflow:auto;max-height:320px;}
+.preview-scroll table{font-size:11px;width:100%;}
+.preview-scroll th{
+  background:var(--surface2);padding:7px 10px;
+  text-align:left;font-size:10px;color:var(--text2);
+  border-bottom:1px solid var(--border);white-space:nowrap;
+  font-family:var(--mono);text-transform:uppercase;letter-spacing:0.5px;
+}
+.preview-scroll td{
+  padding:6px 10px;border-bottom:1px solid var(--border);
+  color:var(--text2);white-space:nowrap;
+  max-width:180px;overflow:hidden;text-overflow:ellipsis;
+  font-family:var(--mono);font-size:10px;
+}
+.preview-footer {
+  background:var(--surface2);
+  border-top:1px solid var(--border);
+  padding:10px 16px;
+  display:flex;gap:8px;align-items:center;
+}
+
+/* Modal */
+#modal-bg {
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.6);
+  backdrop-filter:blur(4px);
+  z-index:200;align-items:center;justify-content:center;padding:24px;
+}
+#modal-bg.open{display:flex;}
+.modal {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;padding:28px;
+  width:100%;max-width:480px;
+  box-shadow:0 24px 64px rgba(0,0,0,0.5);
+  animation:mIn 0.2s ease;
+}
+@keyframes mIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.modal h2{font-size:16px;font-weight:800;margin-bottom:4px;color:#fff;}
+.modal p{font-size:12px;color:var(--text2);margin-bottom:20px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;font-family:var(--mono);}
+.field input{
+  width:100%;border:1px solid var(--border);border-radius:6px;
+  padding:8px 12px;font-size:12px;color:var(--text);
+  background:var(--surface2);outline:none;font-family:var(--mono);
+}
+.field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow);}
+.sql-box{
+  background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  padding:10px;font-size:10px;font-family:var(--mono);color:var(--text2);
+  white-space:pre-wrap;overflow-x:auto;max-height:120px;overflow-y:auto;margin-top:6px;
+}
+.modal-btns{display:flex;gap:8px;margin-top:20px;}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;z-index:500;display:flex;flex-direction:column;gap:6px;}
+.t{
+  background:var(--surface2);color:var(--text);
+  padding:10px 16px;border-radius:7px;
+  font-size:12px;
+  border:1px solid var(--border);
+  box-shadow:0 4px 20px rgba(0,0,0,0.4);
+  display:flex;align-items:center;gap:8px;
+  animation:tIn 0.25s ease;max-width:360px;
+  font-family:var(--sans);
+}
+@keyframes tIn{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:translateX(0);}}
+.t.ok{background:rgba(22,101,52,0.9);border-color:rgba(34,197,94,0.3);}
+.t.err{background:rgba(153,27,27,0.9);border-color:rgba(239,68,68,0.3);}
+.t.inf{background:rgba(29,78,216,0.9);border-color:rgba(59,130,246,0.3);}
+
+/* Loader */
+#loader{
+  display:none;position:fixed;inset:0;
+  background:rgba(13,17,23,0.75);
+  z-index:300;align-items:center;justify-content:center;
+  flex-direction:column;gap:14px;
+}
+#loader.on{display:flex;}
+.spin{
+  width:36px;height:36px;
+  border:2px solid var(--border);
+  border-top-color:var(--blue);
+  border-radius:50%;
+  animation:sp 0.7s linear infinite;
+}
+@keyframes sp{to{transform:rotate(360deg);}}
+#loader p{font-size:12px;color:var(--text2);font-family:var(--mono);}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--surface);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--text3);}
+
+/* Detail panel */
+#detail-panel {
+  position:fixed;right:-480px;top:56px;bottom:0;width:480px;
+  background:var(--surface);
+  border-left:1px solid var(--border);
+  z-index:150;overflow-y:auto;
+  transition:right 0.3s cubic-bezier(0.4,0,0.2,1);
+  box-shadow:-8px 0 32px rgba(0,0,0,0.4);
+}
+#detail-panel.open{right:0;}
+.dp-header{
+  background:var(--surface2);border-bottom:1px solid var(--border);
+  padding:14px 18px;display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:5;
+}
+.dp-title{font-size:14px;font-weight:700;color:#fff;flex:1;}
+.dp-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:2px;}
+.dp-close:hover{color:var(--text);}
+.dp-body{padding:16px 18px;}
+.dp-field{margin-bottom:12px;}
+.dp-label{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px;font-family:var(--mono);}
+.dp-val{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:5px;padding:7px 10px;
+  font-size:11px;font-family:var(--mono);color:var(--text2);
+  min-height:30px;word-break:break-all;
+}
+.dp-val.editable-field{cursor:text;}
+.dp-val.editable-field:hover{border-color:var(--border2);}
+.dp-section{
+  font-size:9px;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:2px;
+  margin:18px 0 10px;
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--mono);
+}
+.dp-section::after{content:'';flex:1;height:1px;background:var(--border);}
+
+@media(max-width:640px){
+  nav{display:none;}
+  #view-menu,#view-upload{padding:14px;}
+  .cards-grid{grid-template-columns:1fr 1fr;}
+  #detail-panel{width:100%;right:-100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOPBAR ═══ -->
+<div id="topbar">
+  <div class="brand">
+    <div class="brand-mark">T</div>
+    <div>
+      <div class="brand-name">TECSYCOM</div>
+      <div class="brand-sub">GESTIÓN</div>
+    </div>
+  </div>
+
+  <nav>
+    <button class="nav-btn active" onclick="show('menu')">🏠 Inicio</button>
+    <button class="nav-btn" onclick="show('gestion')">📊 Base PERUFIBRA</button>
+    <button class="nav-btn" onclick="show('upload')">📂 Cargar CSV</button>
+  </nav>
+
+  <div class="topbar-right">
+    <div class="conn-badge">
+      <div class="dot" id="dot"></div>
+      <span id="conn-txt">Sin conexión</span>
+    </div>
+    <span id="rec-count">0 registros</span>
+    <button class="btn-cfg" onclick="openCfg()">⚙️ Supabase</button>
+  </div>
+</div>
+
+<!-- ═══ VISTAS ═══ -->
+<div id="main">
+
+  <!-- ─── INICIO ─── -->
+  <div id="view-menu" class="view active">
+
+    <div class="page-header">
+      <h1>📋 Gestión PERUFIBRA — TECSYCOM</h1>
+      <p>Sistema de control de instalaciones y técnicos · Archivos CSV AppSheet</p>
+    </div>
+
+    <div id="warn-bar" class="warn-bar">
+      ⚠️ Configura Supabase para sincronización en tiempo real.
+      <button class="btn btn-white btn-sm" style="margin-left:auto;" onclick="openCfg()">Configurar →</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-val" id="s-total">0</div><div class="stat-label">Total</div></div>
+      <div class="stat-card"><div class="stat-val green" id="s-atend">0</div><div class="stat-label">Atendidos</div></div>
+      <div class="stat-card"><div class="stat-val amber" id="s-ausen">0</div><div class="stat-label">Ausentes</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-pend">0</div><div class="stat-label">Pendientes</div></div>
+      <div class="stat-card"><div class="stat-val purple" id="s-tec">0</div><div class="stat-label">Técnicos</div></div>
+    </div>
+
+    <div class="section-title">Módulos</div>
+    <div class="cards-grid">
+      <div class="card blue" onclick="show('gestion')">
+        <div class="card-icon">📊</div>
+        <div class="card-title">Base PERUFIBRA</div>
+        <div class="card-desc">Ver, buscar y editar registros de instalaciones.</div>
+      </div>
+      <div class="card blue" onclick="show('upload')">
+        <div class="card-icon">📂</div>
+        <div class="card-title">Cargar CSV</div>
+        <div class="card-desc">Importar desde archivo CSV de AppSheet (separador ;).</div>
+      </div>
+      <div class="card green" onclick="downloadCSV()">
+        <div class="card-icon">⬇️</div>
+        <div class="card-title">Descargar CSV</div>
+        <div class="card-desc">Exportar datos con estructura original completa.</div>
+      </div>
+      <div class="card amber" onclick="openCfg()">
+        <div class="card-icon">🔗</div>
+        <div class="card-title">Configurar Supabase</div>
+        <div class="card-desc">Activar sincronización en tiempo real.</div>
+      </div>
+    </div>
+
+    <div class="section-title">Próximamente</div>
+    <div class="cards-grid">
+      <div class="card gray"><div class="card-icon">📍</div><div class="card-title">Mapa de Técnicos</div><div class="card-desc">Visualización geográfica de instalaciones.</div></div>
+      <div class="card gray"><div class="card-icon">📈</div><div class="card-title">Reportes</div><div class="card-desc">Estadísticas de producción diaria.</div></div>
+      <div class="card gray"><div class="card-icon">🔔</div><div class="card-title">Alertas</div><div class="card-desc">Notificaciones de reingresos críticos.</div></div>
+      <div class="card gray"><div class="card-icon">👥</div><div class="card-title">Técnicos</div><div class="card-desc">Gestión de cuadrillas y tramos.</div></div>
+    </div>
+  </div>
+
+  <!-- ─── GESTIÓN ─── -->
+  <div id="view-gestion" class="view" style="display:flex;flex-direction:column;height:calc(100vh - 56px);">
+
+    <div class="view-header">
+      <h2>📊 Base PERUFIBRA</h2>
+      <span class="badge-count" id="tbl-badge">0</span>
+      <div style="margin-left:auto;display:flex;gap:7px;">
+        <button class="btn btn-green btn-sm" onclick="downloadCSV()">⬇️ Descargar CSV</button>
+        <button class="btn btn-white btn-sm" onclick="recargar()">🔄 Recargar</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-ico">🔍</span>
+        <input id="q" type="text" placeholder="Buscar cliente, DNI, técnico, código..." oninput="filtrar()"/>
+      </div>
+      <select class="filter" id="f-estado" onchange="filtrar()">
+        <option value="">— Estado —</option>
+        <option>ATENDIDO</option><option>AUSENTE</option>
+        <option>PENDIENTE</option><option>CANCELADO</option>
+      </select>
+      <select class="filter" id="f-tecnico" onchange="filtrar()">
+        <option value="">— Técnico —</option>
+      </select>
+      <select class="filter" id="f-distrito" onchange="filtrar()">
+        <option value="">— Distrito —</option>
+      </select>
+      <button class="btn btn-white btn-sm" onclick="limpiarFiltros()">✕ Limpiar</button>
+      <button class="btn btn-sm" onclick="confirmarLimpiarTodo()" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.3);">🗑️ Vaciar</button>
+    </div>
+
+    <div class="table-area" id="table-area">
+      <div class="empty" id="empty-state">
+        <div class="empty-icon">📂</div>
+        <div class="empty-title">Sin datos cargados</div>
+        <div class="empty-desc">Carga un archivo CSV de AppSheet para comenzar.</div>
+        <button class="btn btn-blue btn-sm" onclick="show('upload')">📂 Cargar CSV</button>
+      </div>
+      <table id="tbl" style="display:none">
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="pager">
+      <button class="pg-btn" id="btn-prev" onclick="pg(-1)">‹</button>
+      <div id="pg-nums" style="display:flex;gap:3px;"></div>
+      <button class="pg-btn" id="btn-next" onclick="pg(1)">›</button>
+      <span id="page-info">—</span>
+    </div>
+  </div>
+
+  <!-- ─── CARGA CSV ─── -->
+  <div id="view-upload" class="view">
+
+    <input type="file" id="file-input-real" accept=".csv,.txt"
+           onchange="onFileSelected(this)"/>
+
+    <label for="file-input-real"
+           id="drop-zone"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="onDrop(event)">
+      <div class="upload-icon">📄</div>
+      <div class="upload-title">Selecciona tu archivo CSV</div>
+      <div class="upload-sub">
+        Arrastra aquí o haz clic para buscar.<br/>
+        Se detectan automáticamente los encabezados y el separador.
+      </div>
+      <div class="upload-cta">📂 &nbsp;Buscar archivo CSV...</div>
+      <div class="upload-hint">Formato: .csv · Separador: ; (punto y coma)</div>
+    </label>
+
+    <!-- Panel de detección de encabezados -->
+    <div id="header-panel" class="header-panel" style="display:none;">
+      <div class="header-panel-hdr">
+        <span>🔍 Detección de encabezados</span>
+        <span id="hp-file" style="color:var(--text2);font-family:var(--mono);font-size:10px;"></span>
+        <span id="hp-sep" style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--teal);"></span>
+      </div>
+      <div class="header-panel-body">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">
+          Columnas visuales configuradas → columna detectada en el archivo:
+        </div>
+        <div class="col-map-grid" id="col-map-grid"></div>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div id="preview-box" class="preview-box" style="display:none;margin-top:14px;">
+      <div class="preview-header">
+        <strong id="prev-title">Vista previa</strong>
+        <span class="badge-count" id="prev-badge">0 filas</span>
+        <div style="margin-left:auto;display:flex;gap:7px;">
+          <button class="btn btn-blue btn-sm" onclick="importarSupabase()">☁️ Importar a Supabase</button>
+          <button class="btn btn-green btn-sm" onclick="importarLocal()">💾 Cargar localmente</button>
+        </div>
+      </div>
+      <div class="preview-scroll">
+        <table>
+          <thead id="prev-head"></thead>
+          <tbody id="prev-body"></tbody>
+        </table>
+      </div>
+      <div class="preview-footer">
+        <span id="prev-info" style="color:var(--text3);font-size:11px;"></span>
+        <button class="btn btn-white btn-sm" style="margin-left:auto;"
+          onclick="document.getElementById('preview-box').style.display='none';
+                   document.getElementById('header-panel').style.display='none';
+                   document.getElementById('file-input-real').value=''">✕ Cancelar</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ═══ PANEL DETALLE ═══ -->
+<div id="detail-panel">
+  <div class="dp-header">
+    <div class="dp-title" id="dp-title">Detalle del registro</div>
+    <button class="dp-close" onclick="closeDetail()">✕</button>
+  </div>
+  <div class="dp-body" id="dp-body"></div>
+</div>
+
+<!-- ═══ MODAL CONFIG ═══ -->
+<div id="modal-bg">
+  <div class="modal">
+    <h2>⚙️ Configuración Supabase</h2>
+    <p>Credenciales para sincronización en tiempo real con tu base de datos.</p>
+    <div class="field">
+      <label>URL del Proyecto</label>
+      <input id="cfg-url" type="text" placeholder="https://xxxx.supabase.co"/>
+    </div>
+    <div class="field">
+      <label>API Key (anon)</label>
+      <input id="cfg-key" type="password" placeholder="eyJhbGciO..."/>
+    </div>
+    <div class="field">
+      <label>Nombre de la tabla</label>
+      <input id="cfg-tbl" type="text" value="base_perufibra"/>
+    </div>
+    <div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;font-family:var(--mono);">SQL para crear tabla</div>
+    <div class="sql-box" id="sql-box"></div>
+    <div class="modal-btns">
+      <button class="btn btn-blue" onclick="guardarCfg()" style="flex:1;">💾 Guardar y conectar</button>
+      <button class="btn btn-white" onclick="cerrarCfg()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LOADER ═══ -->
+<div id="loader"><div class="spin"></div><p id="loader-txt">Cargando...</p></div>
+
+<!-- ═══ TOAST ═══ -->
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════
+//  ESTADO GLOBAL
+// ════════════════════════════════════════════════
+let CFG     = { url:'', key:'', tbl:'base_perufibra' };
+let DATA    = [];    // todos los registros (estructura completa original)
+let FDATA   = [];    // filtrados
+let PENDING = [];    // pendientes de importar
+let PAGE    = 1;
+const PG    = 50;
+let SORT_C  = null;
+let SORT_D  = 1;
+let ORIG_HEADERS = [];   // encabezados originales del CSV cargado
+let COL_MAP = {};        // mapa: clave visual → nombre real en CSV
+
+// ════════════════════════════════════════════════
+//  COLUMNAS VISUALES
+//  Cada entrada: { k: clave interna, l: etiqueta, aliases: [...posibles nombres en CSV], e: editable, b: badge }
+// ════════════════════════════════════════════════
+const COLS = [
+  { k:'NEGOCIO',           l:'NEGOCIO',          aliases:['NEGOCIO','negocio','Negocio','Partner','partner','Agencia'],    e:true },
+  { k:'Codigo',            l:'Código',            aliases:['Codigo','código','codigo','id_contrato','IDoperacion','valida_cod_pedido'],  e:true },
+  { k:'Cliente',           l:'Cliente',           aliases:['Cliente','cliente','nom_cliente','nombre_cliente'],            e:true },
+  { k:'dni',               l:'DNI',               aliases:['dni','DNI','dni_cliente','DNI_cliente'],                       e:true },
+  { k:'Direccion',         l:'Dirección',         aliases:['Direccion','Dirección','direccion','direccion_cliente','Direccion_cliente'], e:true },
+  { k:'Distrito',          l:'Distrito',          aliases:['Distrito','distrito','Distrito_1','Distrito_cliente'],         e:true },
+  { k:'Ref-1',             l:'Ref-1',             aliases:['Ref-1','Ref1','ref1','ref_1','cto1'],                          e:true },
+  { k:'Ref-2',             l:'Ref-2',             aliases:['Ref-2','Ref2','ref2','ref_2','cto2'],                          e:true },
+  { k:'Estado',            l:'Estado',            aliases:['Estado','estado','Estado_1'],                                  e:true, b:true },
+  { k:'Tecnico',           l:'Técnico',           aliases:['Tecnico','Técnico','tecnico','Cuadrilla','cuadrilla'],         e:true },
+  { k:'Cel_Tecnico',       l:'Cel. Técnico',      aliases:['Cel_Tecnico','cel_tecnico','telefono_tecnico','Whatsapp'],     e:true },
+  { k:'Tramo',             l:'Tramo',             aliases:['Tramo','tramo','Tramo de Atención','Tramo_1','horario'],       e:true },
+  { k:'Observaciones',     l:'Observaciones',     aliases:['Observaciones','observaciones','Obs_Cancel','Detalle Estado','Comentario'],e:true },
+  { k:'Reingreso',         l:'Reingreso',         aliases:['Reingreso','reingreso'],                                       e:true, b:true },
+  { k:'Conteo',            l:'Conteo',            aliases:['Conteo','conteo','#️⃣'],                                       e:true },
+  { k:'Segmento',          l:'Segmento',          aliases:['Segmento','segmento','tipo','Campaña'],                        e:true },
+  { k:'Telef_Alternativo', l:'Telef. Alt.',       aliases:['Telef_Alternativo','telefono_alternativo','Whatsapp','telefono'], e:true },
+  { k:'Parentesco',        l:'Parentesco',        aliases:['Parentesco','parentesco','At_Titular'],                        e:true },
+  { k:'Atendido',          l:'Atendido',          aliases:['Atendido','atendido'],                                         e:true },
+  { k:'Quantum',           l:'Quantum',           aliases:['Quantum','quantum','VelocidadContratada','Paquete'],           e:true, b:true },
+  { k:'ONT',               l:'ONT',               aliases:['ONT','ont','SN','sn','S/N'],                                   e:true },
+  { k:'TIEMPO',            l:'TIEMPO',            aliases:['TIEMPO','tiempo','H_Cierre','H_Proceso','⏰'],                 e:true },
+  { k:'BACK',              l:'BACK',              aliases:['BACK','back'],                                                  e:true },
+];
+
+const SEARCH_K = ['Cliente','dni','Tecnico','Estado','Distrito','Codigo','Observaciones','NEGOCIO'];
+
+// ════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  cargarCfg();
+  construirHeader();
+  actualizarSQL();
+  if (CFG.url && CFG.key) conectar();
+  else updateConn(false, 'Sin conexión');
+  document.getElementById('view-gestion').style.display = 'none';
+  actualizarWarnBar();
+});
+
+// ════════════════════════════════════════════════
+//  NAVEGACIÓN
+// ════════════════════════════════════════════════
+function show(v) {
+  document.querySelectorAll('.view').forEach(el => {
+    el.classList.remove('active');
+    el.style.display = '';
+  });
+  const el = document.getElementById('view-'+v);
+  if (v === 'gestion') el.style.display = 'flex';
+  else el.style.display = 'block';
+  el.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const map = { menu:'🏠 Inicio', gestion:'📊 Base PERUFIBRA', upload:'📂 Cargar CSV' };
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    if (b.textContent.trim() === map[v]) b.classList.add('active');
+  });
+}
+
+// ════════════════════════════════════════════════
+//  CONFIG SUPABASE
+// ════════════════════════════════════════════════
+function cargarCfg() {
+  try {
+    const s = localStorage.getItem('tcs_cfg');
+    if (s) CFG = { ...CFG, ...JSON.parse(s) };
+    document.getElementById('cfg-url').value = CFG.url || '';
+    document.getElementById('cfg-key').value = CFG.key || '';
+    document.getElementById('cfg-tbl').value = CFG.tbl || 'base_perufibra';
+  } catch(e){}
+}
+function guardarCfg() {
+  CFG.url = document.getElementById('cfg-url').value.trim().replace(/\/$/,'');
+  CFG.key = document.getElementById('cfg-key').value.trim();
+  CFG.tbl = document.getElementById('cfg-tbl').value.trim() || 'base_perufibra';
+  localStorage.setItem('tcs_cfg', JSON.stringify(CFG));
+  cerrarCfg(); conectar(); actualizarWarnBar();
+}
+function actualizarWarnBar() {
+  document.getElementById('warn-bar').classList.toggle('hidden', !!(CFG.url && CFG.key));
+}
+function openCfg() { document.getElementById('modal-bg').classList.add('open'); actualizarSQL(); }
+function cerrarCfg() { document.getElementById('modal-bg').classList.remove('open'); }
+document.getElementById('modal-bg').addEventListener('click', e => { if(e.target===e.currentTarget) cerrarCfg(); });
+document.getElementById('cfg-tbl').addEventListener('input', actualizarSQL);
+
+function actualizarSQL() {
+  const t = document.getElementById('cfg-tbl').value || 'base_perufibra';
+  const cols = COLS.map(c => `  "${c.k}" TEXT`).join(',\n');
+  document.getElementById('sql-box').textContent =
+`CREATE TABLE IF NOT EXISTS ${t} (
+  id BIGSERIAL PRIMARY KEY,
+  _orig_headers TEXT,
+  _raw_row TEXT,
+${cols}
+);`;
+}
+
+// ════════════════════════════════════════════════
+//  SUPABASE API
+// ════════════════════════════════════════════════
+async function apiFetch(path, opts={}) {
+  const r = await fetch(`${CFG.url}/rest/v1/${path}`, {
+    ...opts,
+    headers: {
+      'apikey': CFG.key,
+      'Authorization': 'Bearer ' + CFG.key,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || 'return=representation',
+      ...opts.headers
+    }
+  });
+  if (!r.ok) { const t = await r.text(); throw new Error(t); }
+  if (r.status === 204) return [];
+  return r.json();
+}
+
+async function conectar() {
+  if (!CFG.url || !CFG.key) { updateConn(false,'Sin conexión'); return; }
+  try {
+    updateConn(false,'Conectando...');
+    await cargarDatos();
+    updateConn(true,'Supabase OK');
+  } catch(e) {
+    updateConn(false,'Error: '+e.message.slice(0,30));
+  }
+}
+
+async function cargarDatos() {
+  if (!CFG.url||!CFG.key) return;
+  loader('Cargando datos...');
+  try {
+    const rows = await apiFetch(`${CFG.tbl}?select=*&limit=5000&order=id.asc`);
+    DATA = rows || [];
+    // Restaurar encabezados originales si están guardados
+    if (DATA.length && DATA[0]._orig_headers) {
+      ORIG_HEADERS = JSON.parse(DATA[0]._orig_headers);
+      buildColMap(ORIG_HEADERS);
+    }
+    filtrar(); updateStats(); fillFilters();
+    toast(`✅ ${DATA.length} registros cargados`, 'ok');
+  } catch(e) {
+    toast('❌ Error al cargar: '+e.message, 'err');
+  } finally { loader(); }
+}
+
+async function recargar() {
+  if (CFG.url && CFG.key) await cargarDatos();
+  else toast('ℹ️ Sin conexión Supabase. Datos en memoria.', 'inf');
+}
+
+// ════════════════════════════════════════════════
+//  MAPEO DE COLUMNAS CSV → VISUALES
+// ════════════════════════════════════════════════
+function buildColMap(headers) {
+  COL_MAP = {};
+  const headersLow = headers.map(h => h.toLowerCase().trim());
+  COLS.forEach(col => {
+    // Buscar alias exacto o case-insensitive
+    let found = null;
+    for (const alias of col.aliases) {
+      const idx = headers.findIndex(h =>
+        h.trim() === alias ||
+        h.trim().toLowerCase() === alias.toLowerCase()
+      );
+      if (idx !== -1) { found = headers[idx]; break; }
+    }
+    // Si no, buscar coincidencia parcial
+    if (!found) {
+      for (const alias of col.aliases) {
+        const idx = headersLow.findIndex(h => h.includes(alias.toLowerCase()) || alias.toLowerCase().includes(h));
+        if (idx !== -1) { found = headers[idx]; break; }
+      }
+    }
+    COL_MAP[col.k] = found || null;
+  });
+}
+
+function getVal(row, colK) {
+  // Primero intenta la clave directa (si ya fue mapeado)
+  if (row[colK] !== undefined && row[colK] !== '') return row[colK];
+  // Luego busca por el mapa
+  const mapped = COL_MAP[colK];
+  if (mapped && row[mapped] !== undefined) return row[mapped];
+  // Busca con aliases
+  const colDef = COLS.find(c => c.k === colK);
+  if (colDef) {
+    for (const alias of colDef.aliases) {
+      if (row[alias] !== undefined) return row[alias];
+    }
+  }
+  return '';
+}
+
+// ════════════════════════════════════════════════
+//  TABLA
+// ════════════════════════════════════════════════
+function construirHeader() {
+  const thead = document.getElementById('thead');
+  // Fila 1: grupo
+  let grp = '<tr><th class="rn" rowspan="2">#</th>';
+  grp += `<th colspan="${COLS.length}" class="col-group-hdr">DATOS DE GESTIÓN</th>`;
+  grp += '<th class="col-group-hdr">⚙️</th></tr>';
+  // Fila 2: columnas
+  let cols = '<tr>';
+  COLS.forEach(c => {
+    cols += `<th onclick="sortBy('${c.k}')" id="th-${c.k}">${c.l}</th>`;
+  });
+  cols += '<th style="text-align:center;font-family:var(--mono);">Ver</th></tr>';
+  thead.innerHTML = grp + cols;
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function badgeEstado(v) {
+  const val = String(v||'').toUpperCase();
+  if (val==='ATENDIDO') return `<span class="badge b-green">${val}</span>`;
+  if (val==='AUSENTE')  return `<span class="badge b-amber">${val}</span>`;
+  if (val==='CANCELADO'||val==='CANCEL') return `<span class="badge b-red">${val}</span>`;
+  if (val==='PENDIENTE'||val==='') return `<span class="badge b-gray">${val||'PENDIENTE'}</span>`;
+  return `<span class="badge b-blue">${esc(v)}</span>`;
+}
+function badgeYN(v) {
+  const val = String(v||'').toUpperCase();
+  if (val==='SI'||val==='SÍ'||val==='S'||val==='1'||val==='YES') return `<span class="badge b-purple">SÍ</span>`;
+  if (val==='NO'||val==='0') return `<span class="badge b-gray">NO</span>`;
+  if (!val) return '';
+  return `<span class="badge b-blue">${esc(v)}</span>`;
+}
+
+function renderTabla() {
+  const tbody = document.getElementById('tbody');
+  const start = (PAGE-1)*PG;
+  const slice = FDATA.slice(start, start+PG);
+  const empty = document.getElementById('empty-state');
+  const tbl   = document.getElementById('tbl');
+
+  if (!FDATA.length) {
+    empty.style.display=''; tbl.style.display='none';
+    document.getElementById('tbl-badge').textContent='0';
+    document.getElementById('page-info').textContent='Sin resultados';
+    document.getElementById('pg-nums').innerHTML='';
+    return;
+  }
+  empty.style.display='none'; tbl.style.display='';
+  document.getElementById('tbl-badge').textContent = FDATA.length;
+
+  tbody.innerHTML = slice.map((row, i) => {
+    const n = start + i + 1;
+    const cells = COLS.map(c => {
+      const v = getVal(row, c.k);
+      if (c.k === 'Estado') return `<td>${badgeEstado(v)}</td>`;
+      if (c.k === 'Reingreso' || c.k === 'Atendido') return `<td>${badgeYN(v)}</td>`;
+      if (c.k === 'Quantum') return v ? `<td><span class="badge b-purple">${esc(v)}</span></td>` : `<td></td>`;
+      if (c.k === 'Cliente') return `<td class="client-col editable" ondblclick="editCell(this,'${c.k}',${DATA.indexOf(row)})">${esc(v)}</td>`;
+      if (c.e) return `<td class="editable" ondblclick="editCell(this,'${c.k}',${DATA.indexOf(row)})">${esc(v)}</td>`;
+      return `<td>${esc(v)}</td>`;
+    }).join('');
+    return `<tr>
+      <td class="rn">${n}</td>
+      ${cells}
+      <td style="text-align:center;"><button class="pg-btn" style="padding:2px 7px;font-size:10px;" onclick="openDetail(${DATA.indexOf(row)})">👁</button></td>
+    </tr>`;
+  }).join('');
+
+  const total = FDATA.length;
+  const pages = Math.ceil(total/PG);
+  document.getElementById('btn-prev').disabled = PAGE <= 1;
+  document.getElementById('btn-next').disabled = PAGE >= pages;
+  document.getElementById('page-info').textContent =
+    `${start+1}–${Math.min(start+PG,total)} de ${total}`;
+
+  const range = pgRange(PAGE, pages);
+  document.getElementById('pg-nums').innerHTML = range.map(p =>
+    p==='…' ? '<span style="padding:4px 5px;color:var(--text3)">…</span>'
+            : `<button class="pg-btn ${p===PAGE?'active':''}" onclick="irPag(${p})">${p}</button>`
+  ).join('');
+}
+
+function pgRange(cur, tot) {
+  if (tot<=7) return Array.from({length:tot},(_,i)=>i+1);
+  const r=[1];
+  if (cur>3) r.push('…');
+  for (let i=Math.max(2,cur-1); i<=Math.min(tot-1,cur+1); i++) r.push(i);
+  if (cur<tot-2) r.push('…');
+  r.push(tot);
+  return r;
+}
+
+function irPag(p) { PAGE=p; renderTabla(); document.getElementById('table-area').scrollTop=0; }
+function pg(d) { const tot=Math.ceil(FDATA.length/PG); if(PAGE+d>=1&&PAGE+d<=tot){PAGE+=d;renderTabla();} }
+
+// ════════════════════════════════════════════════
+//  FILTROS Y ORDENAMIENTO
+// ════════════════════════════════════════════════
+function filtrar() {
+  const q = document.getElementById('q').value.toLowerCase();
+  const fe = document.getElementById('f-estado').value;
+  const ft = document.getElementById('f-tecnico').value;
+  const fd = document.getElementById('f-distrito').value;
+
+  FDATA = DATA.filter(row => {
+    if (fe && getVal(row,'Estado').toUpperCase() !== fe.toUpperCase()) return false;
+    if (ft && getVal(row,'Tecnico') !== ft) return false;
+    if (fd && getVal(row,'Distrito') !== fd) return false;
+    if (q) {
+      return SEARCH_K.some(k => getVal(row,k).toLowerCase().includes(q));
+    }
+    return true;
+  });
+
+  if (SORT_C) {
+    FDATA.sort((a,b) => {
+      const va = getVal(a,SORT_C), vb = getVal(b,SORT_C);
+      return SORT_D * va.localeCompare(vb, 'es', {sensitivity:'base'});
+    });
+  }
+
+  PAGE = 1;
+  renderTabla();
+}
+
+function sortBy(k) {
+  if (SORT_C === k) SORT_D *= -1;
+  else { SORT_C=k; SORT_D=1; }
+  document.querySelectorAll('th').forEach(th => th.classList.remove('sorted-asc','sorted-desc'));
+  const th = document.getElementById('th-'+k);
+  if (th) th.classList.add(SORT_D===1?'sorted-asc':'sorted-desc');
+  filtrar();
+}
+
+function limpiarFiltros() {
+  document.getElementById('q').value='';
+  document.getElementById('f-estado').value='';
+  document.getElementById('f-tecnico').value='';
+  document.getElementById('f-distrito').value='';
+  filtrar();
+}
+
+function fillFilters() {
+  const tecnicos = [...new Set(DATA.map(r=>getVal(r,'Tecnico')).filter(Boolean))].sort();
+  const distritos = [...new Set(DATA.map(r=>getVal(r,'Distrito')).filter(Boolean))].sort();
+  const selTec = document.getElementById('f-tecnico');
+  const selDis = document.getElementById('f-distrito');
+  selTec.innerHTML = '<option value="">— Técnico —</option>' + tecnicos.map(t=>`<option>${t}</option>`).join('');
+  selDis.innerHTML = '<option value="">— Distrito —</option>' + distritos.map(d=>`<option>${d}</option>`).join('');
+}
+
+// ════════════════════════════════════════════════
+//  EDICIÓN INLINE
+// ════════════════════════════════════════════════
+function editCell(td, key, idx) {
+  const row = DATA[idx];
+  if (!row) return;
+  const v = getVal(row, key);
+  const orig = td.innerHTML;
+  td.innerHTML = `<input class="cell-input" value="${esc(v)}" onblur="saveCell(this,'${key}',${idx})" onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape')this.parentElement.innerHTML='${orig.replace(/'/g,'&#39;')}';"/>`;
+  td.querySelector('input').focus();
+}
+
+function saveCell(input, key, idx) {
+  const newVal = input.value.trim();
+  const row = DATA[idx];
+  if (!row) return;
+  // Guardar en la clave visual
+  row[key] = newVal;
+  // También en la clave mapeada si existe
+  if (COL_MAP[key]) row[COL_MAP[key]] = newVal;
+  filtrar();
+  toast('✏️ Cambio guardado localmente', 'inf');
+  // Si hay Supabase, sincronizar
+  if (CFG.url && CFG.key && row.id) {
+    const patch = { [key]: newVal };
+    if (COL_MAP[key] && COL_MAP[key] !== key) patch[COL_MAP[key]] = newVal;
+    apiFetch(`${CFG.tbl}?id=eq.${row.id}`, {
+      method:'PATCH', body:JSON.stringify(patch), prefer:'return=minimal'
+    }).then(() => toast('☁️ Sincronizado con Supabase', 'ok'))
+      .catch(e => toast('⚠️ No se pudo sincronizar: '+e.message, 'err'));
+  }
+}
+
+// ════════════════════════════════════════════════
+//  PANEL DETALLE
+// ════════════════════════════════════════════════
+function openDetail(idx) {
+  const row = DATA[idx];
+  if (!row) return;
+  document.getElementById('dp-title').textContent = getVal(row,'Cliente') || 'Detalle';
+  const body = document.getElementById('dp-body');
+
+  // Campos visuales
+  let html = '<div class="dp-section">Datos Visuales</div>';
+  COLS.forEach(c => {
+    const v = getVal(row, c.k);
+    html += `<div class="dp-field">
+      <div class="dp-label">${c.l}</div>
+      <div class="dp-val${c.e?' editable-field':''}" contenteditable="${c.e}" 
+           data-key="${c.k}" data-idx="${idx}"
+           onblur="saveDetailField(this,'${c.k}',${idx})">${esc(v)}</div>
+    </div>`;
+  });
+
+  // Todos los campos del CSV original
+  const visKeys = new Set([...COLS.map(c=>c.k), ...Object.values(COL_MAP).filter(Boolean)]);
+  const extraFields = Object.keys(row).filter(k => !visKeys.has(k) && k !== 'id' && k !== '_orig_headers' && k !== '_raw_row' && row[k]);
+  if (extraFields.length) {
+    html += '<div class="dp-section">Datos Completos CSV</div>';
+    extraFields.forEach(k => {
+      html += `<div class="dp-field">
+        <div class="dp-label">${k}</div>
+        <div class="dp-val">${esc(row[k])}</div>
+      </div>`;
+    });
+  }
+
+  body.innerHTML = html;
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function saveDetailField(el, key, idx) {
+  const val = el.textContent.trim();
+  DATA[idx][key] = val;
+  if (COL_MAP[key]) DATA[idx][COL_MAP[key]] = val;
+  filtrar();
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('open');
+}
+
+// ════════════════════════════════════════════════
+//  ESTADÍSTICAS
+// ════════════════════════════════════════════════
+function updateStats() {
+  document.getElementById('s-total').textContent = DATA.length;
+  document.getElementById('s-atend').textContent = DATA.filter(r=>getVal(r,'Estado').toUpperCase()==='ATENDIDO').length;
+  document.getElementById('s-ausen').textContent = DATA.filter(r=>getVal(r,'Estado').toUpperCase()==='AUSENTE').length;
+  document.getElementById('s-pend').textContent  = DATA.filter(r=>!getVal(r,'Estado')||getVal(r,'Estado').toUpperCase()==='PENDIENTE').length;
+  document.getElementById('s-tec').textContent   = new Set(DATA.map(r=>getVal(r,'Tecnico')).filter(Boolean)).size;
+  document.getElementById('rec-count').textContent = DATA.length + ' registros';
+}
+
+function confirmarLimpiarTodo() {
+  if (confirm('¿Vaciar todos los datos de la tabla? (solo afecta la vista local)')) {
+    DATA=[]; FDATA=[]; filtrar(); updateStats(); fillFilters();
+    toast('🗑️ Datos vaciados', 'inf');
+  }
+}
+
+// ════════════════════════════════════════════════
+//  LECTURA CSV
+// ════════════════════════════════════════════════
+function onFileSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (!file.name.match(/\.(csv|txt)$/i)) {
+    toast('❌ Solo se aceptan archivos .csv o .txt', 'err'); return;
+  }
+  leerCSV(file);
+}
+
+function onDrop(ev) {
+  ev.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  const file = ev.dataTransfer.files[0];
+  if (!file) return;
+  leerCSV(file);
+}
+
+function detectSeparator(line) {
+  const counts = {';':0, ',':0, '\t':0, '|':0};
+  // Contar fuera de comillas
+  let inQ = false;
+  for (const ch of line) {
+    if (ch==='"') { inQ=!inQ; continue; }
+    if (!inQ && counts[ch]!==undefined) counts[ch]++;
+  }
+  return Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
+}
+
+function parseCSVLine(line, sep) {
+  const result = [];
+  let cur = '';
+  let inQ = false;
+  for (let i=0; i<line.length; i++) {
+    const ch = line[i];
+    if (ch==='"') {
+      if (inQ && line[i+1]==='"') { cur+='"'; i++; }
+      else inQ = !inQ;
+    } else if (ch===sep && !inQ) {
+      result.push(cur.trim()); cur='';
+    } else {
+      cur += ch;
+    }
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+function leerCSV(file) {
+  loader('Leyendo archivo CSV...');
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      // Limpiar BOM
+      let text = ev.target.result.replace(/^\uFEFF/,'');
+      const lines = text.split(/\r?\n/).filter(l=>l.trim());
+      if (lines.length < 2) { loader(); toast('❌ Archivo CSV vacío o sin datos', 'err'); return; }
+
+      const sep = detectSeparator(lines[0]);
+      const headers = parseCSVLine(lines[0], sep);
+
+      // Guardar encabezados originales y construir mapa
+      ORIG_HEADERS = headers;
+      buildColMap(headers);
+
+      // Parsear filas
+      const rows = [];
+      for (let i=1; i<lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const vals = parseCSVLine(lines[i], sep);
+        const row = {};
+        headers.forEach((h, j) => {
+          row[h] = vals[j] !== undefined ? vals[j] : '';
+        });
+        // Agregar también las claves visuales mapeadas para acceso directo
+        COLS.forEach(col => {
+          const srcKey = COL_MAP[col.k];
+          if (srcKey && row[srcKey] !== undefined) {
+            row[col.k] = row[srcKey];
+          }
+        });
+        row._orig_headers = JSON.stringify(headers);
+        row._raw_row = lines[i];
+        rows.push(row);
+      }
+
+      PENDING = rows;
+      loader();
+
+      // Mostrar panel de encabezados detectados
+      mostrarHeaderPanel(file.name, sep, headers);
+      mostrarPreview(PENDING, file.name);
+      toast(`📄 ${rows.length} filas detectadas · separador "${sep==='	'?'TAB':sep}"`, 'ok');
+    } catch(err) {
+      loader();
+      toast('❌ Error al leer: '+err.message, 'err');
+      console.error(err);
+    }
+  };
+  reader.onerror = () => { loader(); toast('❌ No se pudo leer el archivo', 'err'); };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function mostrarHeaderPanel(filename, sep, headers) {
+  document.getElementById('hp-file').textContent = filename;
+  document.getElementById('hp-sep').textContent = `sep: "${sep==='	'?'TAB':sep}" · ${headers.length} columnas`;
+
+  const grid = document.getElementById('col-map-grid');
+  grid.innerHTML = COLS.map(col => {
+    const src = COL_MAP[col.k];
+    const mapped = !!src;
+    return `<div class="col-map-item ${mapped?'mapped':'missing'}">
+      <div class="dot-sm ${mapped?'dot-ok':'dot-miss'}"></div>
+      <div class="col-map-vis">${col.l}</div>
+      <div class="col-map-arrow">→</div>
+      <div class="col-map-src ${mapped?'ok':'missing'}">${src || '⚠ no detectada'}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('header-panel').style.display = 'block';
+}
+
+function mostrarPreview(rows, nombre) {
+  document.getElementById('prev-title').textContent = nombre;
+  document.getElementById('prev-badge').textContent = rows.length + ' filas';
+  document.getElementById('prev-info').textContent =
+    `Vista previa: primeros 10 de ${rows.length} · Se guardarán TODAS las columnas del CSV`;
+
+  document.getElementById('prev-head').innerHTML =
+    '<tr>' + COLS.map(c=>`<th>${c.l}</th>`).join('') + '</tr>';
+
+  document.getElementById('prev-body').innerHTML =
+    rows.slice(0,10).map(r =>
+      '<tr>' + COLS.map(c=>`<td>${esc(getVal(r,c.k))}</td>`).join('') + '</tr>'
+    ).join('');
+
+  document.getElementById('preview-box').style.display = 'block';
+}
+
+// ════════════════════════════════════════════════
+//  IMPORTAR
+// ════════════════════════════════════════════════
+async function importarSupabase() {
+  if (!PENDING.length) return;
+  if (!CFG.url||!CFG.key) { toast('⚠️ Configura Supabase primero', 'inf'); return; }
+  loader(`Importando ${PENDING.length} registros...`);
+  try {
+    const existing = await apiFetch(`${CFG.tbl}?select=Codigo&limit=10000`);
+    const existSet = new Set((existing||[]).map(r=>String(r.Codigo||'')).filter(Boolean));
+
+    const nuevos = PENDING.filter(r => {
+      const c = getVal(r,'Codigo');
+      return !c || !existSet.has(String(c));
+    });
+
+    if (!nuevos.length) { toast('ℹ️ Sin registros nuevos (todos ya existen)', 'inf'); loader(); return; }
+
+    for (let i=0; i<nuevos.length; i+=100) {
+      await apiFetch(CFG.tbl, { method:'POST', body:JSON.stringify(nuevos.slice(i,i+100)), prefer:'return=minimal' });
+    }
+    toast(`✅ ${nuevos.length} importados`, 'ok');
+    await cargarDatos();
+    limpiarUpload();
+    show('gestion');
+  } catch(e) { toast('❌ '+e.message, 'err'); }
+  finally { loader(); }
+}
+
+function importarLocal() {
+  if (!PENDING.length) return;
+  const existSet = new Set(DATA.map(r=>getVal(r,'Codigo')).filter(Boolean));
+  const nuevos = PENDING.filter(r => {
+    const c = getVal(r,'Codigo');
+    return !c || !existSet.has(String(c));
+  });
+  DATA = [...DATA, ...nuevos];
+  filtrar(); updateStats(); fillFilters();
+  toast(`✅ ${nuevos.length} registros cargados localmente`, 'ok');
+  limpiarUpload();
+  show('gestion');
+}
+
+function limpiarUpload() {
+  PENDING = [];
+  document.getElementById('preview-box').style.display='none';
+  document.getElementById('header-panel').style.display='none';
+  document.getElementById('file-input-real').value='';
+}
+
+// ════════════════════════════════════════════════
+//  DESCARGA CSV (estructura original completa)
+// ════════════════════════════════════════════════
+function downloadCSV() {
+  if (!DATA.length) { toast('⚠️ Sin datos para exportar', 'inf'); return; }
+
+  // Usar los encabezados originales si existen
+  let headers = ORIG_HEADERS.length ? [...ORIG_HEADERS] : [];
+  // Asegurarse que las claves visuales también estén si no existen
+  COLS.forEach(col => {
+    if (!headers.includes(col.k) && !headers.includes(COL_MAP[col.k])) {
+      headers.push(col.k);
+    }
+  });
+  // Quitar keys internas
+  headers = headers.filter(h => h && h !== '_orig_headers' && h !== '_raw_row' && h !== 'id');
+
+  const sep = ';';
+  const escCSV = v => {
+    const s = String(v??'');
+    if (s.includes(sep)||s.includes('"')||s.includes('\n')) return `"${s.replace(/"/g,'""')}"`;
+    return s;
+  };
+
+  let csv = headers.map(escCSV).join(sep) + '\n';
+  DATA.forEach(row => {
+    csv += headers.map(h => {
+      // Si es clave visual, preferir el valor mapeado
+      const vis = COLS.find(c=>c.k===h);
+      const v = vis ? getVal(row,h) : (row[h]??'');
+      return escCSV(v);
+    }).join(sep) + '\n';
+  });
+
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `BASE_PERUFIBRA_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('⬇️ CSV descargado con estructura completa', 'ok');
+}
+
+// ════════════════════════════════════════════════
+//  UI HELPERS
+// ════════════════════════════════════════════════
+function updateConn(ok, txt) {
+  document.getElementById('dot').className = 'dot'+(ok?' on':'');
+  document.getElementById('conn-txt').textContent = txt;
+}
+
+function loader(txt) {
+  const el = document.getElementById('loader');
+  if (txt) { document.getElementById('loader-txt').textContent=txt; el.classList.add('on'); }
+  else el.classList.remove('on');
+}
+
+function toast(msg, type='inf') {
+  const el = document.createElement('div');
+  el.className = 't ' + type;
+  el.textContent = msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(()=>el.remove(), 4000);
+}
+
+// Cerrar detalle al hacer clic fuera
+document.addEventListener('click', e => {
+  const panel = document.getElementById('detail-panel');
+  if (panel.classList.contains('open') && !panel.contains(e.target) && !e.target.closest('[onclick*="openDetail"]')) {
+    closeDetail();
+  }
+});
+</script>
+</body>
+</html>
