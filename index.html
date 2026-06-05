@@ -10,8 +10,8 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #EFF3F8; font-family: 'Inter', system-ui, sans-serif; font-size: 13px; height: 100vh; overflow: hidden; }
         .tc-app { display: flex; flex-direction: column; height: 100vh; background: white; overflow: hidden; }
-        .tc-header { background: linear-gradient(98deg, #0A5C47 0%, #0F6E56 100%); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-        .tc-logo-badge { background: white; color: #0F6E56; font-weight: 700; font-size: 13px; padding: 5px 14px; border-radius: 40px; }
+        .tc-header { background: linear-gradient(98deg, #0D1B3E 0%, #1A2F5A 100%); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; color: white; }
+        .tc-logo-badge { background: white; color: #0D1B3E; font-weight: 700; font-size: 13px; padding: 5px 14px; border-radius: 40px; }
         .tc-toolbar { background: white; padding: 12px 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid #E2EDF2; flex-shrink: 0; }
         .tc-btn { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; font-size: 12px; font-weight: 500; border-radius: 12px; background: #FFFFFF; border: 1px solid #CAD5E2; color: #1F2F40; cursor: pointer; transition: 0.2s; }
         .tc-btn.primary { background: #0F6E56; border-color: #0F6E56; color: white; }
@@ -39,7 +39,7 @@
         
         .tc-table-wrapper { flex: 1; overflow: auto; position: relative; background: #FFFFFF; width: 100%; }
         .tc-table { border-collapse: collapse; min-width: 100%; font-size: 12px; }
-        .tc-table th { background: #F4F9FF; position: sticky; top: 0; z-index: 20; padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #DCE5EF; border-right: 1px solid #E9EFF4; white-space: nowrap; cursor: pointer; }
+        .tc-table th { background: #F4F9FF; position: sticky; top: 0; z-index: 20; padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #DCE5EF; border-right: 1px solid #E9EFF4; white-space: nowrap; cursor: pointer; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; }
         .tc-table td { padding: 10px 14px; border-bottom: 0.5px solid #ECF2F8; border-right: 0.5px solid #ECF2F8; white-space: nowrap; background-color: white; }
         .tc-table tr:hover td { background: #FEF9E6; cursor: pointer; }
         
@@ -142,12 +142,12 @@
 </div>
 
 <script>
-    const ESTADOS_OPCIONES = ["En proceso", "Reprograma", "Programado", "Ausente", "Cancelado", "En camino", "Coordinado", "Finalizado", "Transferir", "Planta", "Zona Peligrosa", "Duplicado"];
+    const ESTADOS_OPCIONES = ["EN PROCESO", "REPROGRAMA", "PROGRAMADO", "AUSENTE", "CANCELADO", "EN CAMINO", "COORDINADO", "FINALIZADO", "TRANSFERIR", "PLANTA", "ZONA PELIGROSA", "DUPLICADO"];
 
     const estadoColors = {
-        "En proceso": "stat-en-proceso", "Programado": "stat-programado", "Coordinado": "stat-coordinado",
-        "Finalizado": "stat-finalizado", "Cancelado": "stat-cancelado", "Ausente": "stat-ausente",
-        "En camino": "stat-en-camino", "Reprograma": "stat-reprograma", "Transferir": "stat-transferir", "Planta": "stat-planta"
+        "EN PROCESO": "stat-en-proceso", "PROGRAMADO": "stat-programado", "COORDINADO": "stat-coordinado",
+        "FINALIZADO": "stat-finalizado", "CANCELADO": "stat-cancelado", "AUSENTE": "stat-ausente",
+        "EN CAMINO": "stat-en-camino", "REPROGRAMA": "stat-reprograma", "TRANSFERIR": "stat-transferir", "PLANTA": "stat-planta"
     };
 
     let state = {
@@ -238,18 +238,16 @@
             visibleCols.forEach(col => {
                 let val = row[col.orig] !== undefined && row[col.orig] !== null ? row[col.orig] : "";
                 if (col.orig === estadoCol) {
-                    const valNorm = (val || "").replace(/[\u00A0\u200B\uFEFF]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
-                    const colorClass = estadoColors[
-                        ESTADOS_OPCIONES.find(opt => opt.toLowerCase() === valNorm) || val
-                    ] || "stat-default";
+                    const valUpper = (val || "").replace(/[\u00A0\u200B\uFEFF]/g, "").replace(/\s+/g, " ").trim().toUpperCase();
+                    const colorClass = estadoColors[valUpper] || "stat-default";
                     let selectHtml = `<select onchange="updateEstadoValue(${realIndex}, this.value)" style="background:transparent;border:none;outline:none;font-size:11px;font-weight:600;cursor:pointer;color:inherit;max-width:130px;">`;
-                    let hasMatch = ESTADOS_OPCIONES.some(opt => opt.toLowerCase() === valNorm);
+                    let hasMatch = ESTADOS_OPCIONES.includes(valUpper);
                     ESTADOS_OPCIONES.forEach(opt => {
-                        const selected = (opt.toLowerCase() === valNorm) ? 'selected' : '';
+                        const selected = (opt === valUpper) ? 'selected' : '';
                         selectHtml += `<option value="${escapeHtml(opt)}" ${selected}>${escapeHtml(opt)}</option>`;
                     });
-                    if (!hasMatch && val !== "") {
-                        selectHtml += `<option value="${escapeHtml(val)}" selected>${escapeHtml(val)}</option>`;
+                    if (!hasMatch && valUpper !== "") {
+                        selectHtml += `<option value="${escapeHtml(valUpper)}" selected>${escapeHtml(valUpper)}</option>`;
                     }
                     selectHtml += `</select>`;
                     html += `<td class="td-estado"><span class="stat-chip ${colorClass}" style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;font-size:11px;">${selectHtml}</span></td>`;
@@ -385,17 +383,17 @@
                 // Respetar el valor original de la columna Estado del CSV
                 if (estadoOriginalIndex !== -1) {
                     const valorEstadoCSV = (row[estadoOriginalIndex] || "").trim();
-                    // Normalizar: eliminar caracteres invisibles y espacios dobles
-                    const valorNorm = valorEstadoCSV.replace(/[\u00A0\u200B\uFEFF]/g, "").replace(/\s+/g, " ").trim();
+                    // Normalizar: eliminar caracteres invisibles, espacios dobles y convertir a MAYÚSCULA
+                    const valorNorm = valorEstadoCSV.replace(/[\u00A0\u200B\uFEFF]/g, "").replace(/\s+/g, " ").trim().toUpperCase();
                     if (valorNorm !== "") {
-                        // Buscar coincidencia exacta o case-insensitive en ESTADOS_OPCIONES
-                        const match = ESTADOS_OPCIONES.find(opt => opt.toLowerCase() === valorNorm.toLowerCase());
+                        // Buscar coincidencia exacta en ESTADOS_OPCIONES (ya están en mayúscula)
+                        const match = ESTADOS_OPCIONES.find(opt => opt === valorNorm);
                         obj[estadoOriginalName] = match || valorNorm;
                     } else if (!obj[estadoOriginalName] || obj[estadoOriginalName] === "") {
-                        obj[estadoOriginalName] = "En proceso";
+                        obj[estadoOriginalName] = "EN PROCESO";
                     }
                 } else if (!obj["Estado"] || obj["Estado"] === "") {
-                    obj["Estado"] = "En proceso";
+                    obj["Estado"] = "EN PROCESO";
                 }
                 return obj;
             });
